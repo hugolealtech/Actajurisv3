@@ -1,0 +1,6 @@
+node_modules/
+uploads/
+backups/
+drive_simulado/
+.env
+*.log

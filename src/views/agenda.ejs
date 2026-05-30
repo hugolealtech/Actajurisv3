@@ -1,0 +1,109 @@
+<% const currentPage='agenda'; %>
+<%- include('partials/header') %>
+<div class="page-header">
+  <div class="page-title">Agenda de Prazos<small>Monitoramento e Calculadora de Dias Úteis</small></div>
+  <a href="/" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i> Dashboard</a>
+</div>
+<div class="grid grid-2 gap-4 mb-4">
+  <div class="card card--gold">
+    <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--gold-bg);color:var(--gold)"><i class="fas fa-calculator"></i></div>Calculadora de Dias Úteis</div></div>
+    <div class="card-body">
+      <form method="GET" action="/agenda">
+        <div class="grid grid-2 gap-4 mb-4">
+          <div class="form-group"><label class="form-label">Data-base da Publicação</label><input type="date" name="dataBase" class="form-control" value="<%= dataBase %>"></div>
+          <div class="form-group"><label class="form-label">Prazo em Dias Úteis</label>
+            <div class="radio-group mt-2">
+              <div class="radio-pill"><input type="radio" name="diasUteis" id="d10" value="10" <%=diasUteis=='10'?'checked':''%>><label for="d10">10 dias</label></div>
+              <div class="radio-pill"><input type="radio" name="diasUteis" id="d15" value="15" <%=diasUteis=='15'?'checked':''%>><label for="d15">15 dias</label></div>
+              <div class="radio-pill"><input type="radio" name="diasUteis" id="d30" value="30" <%=diasUteis=='30'?'checked':''%>><label for="d30">30 dias</label></div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-gold btn-full"><i class="fas fa-calculator"></i> Calcular Vencimento</button>
+      </form>
+      <% if(resultadoCalculo){ %>
+        <div class="calc-result mt-4">
+          <div class="calc-result-label">Vencimento do Prazo</div>
+          <div class="calc-result-date"><%= resultadoCalculo %></div>
+          <div class="text-sm text-green mt-2"><%= diasUteis %> dias úteis a partir de <%= moment(dataBase).format('DD/MM/YYYY') %></div>
+        </div>
+      <% } %>
+      <div class="preview-hint mt-4"><i class="fas fa-info-circle" style="color:var(--blue)"></i> A calculadora pula sábados e domingos. Para feriados, consulte o calendário do TRF/JEF competente.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-chart-bar"></i></div>Resumo da Agenda</div></div>
+    <div class="card-body">
+      <div class="grid grid-2 gap-3">
+        <div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:var(--radius);padding:1rem;text-align:center"><div style="font-family:var(--font-display);font-size:2rem;color:var(--red);font-weight:700"><%= vencidos.length %></div><div class="text-sm text-red text-bold">Vencidos</div></div>
+        <div style="background:var(--orange-bg);border:1px solid #fed7aa;border-radius:var(--radius);padding:1rem;text-align:center"><div style="font-family:var(--font-display);font-size:2rem;color:var(--orange);font-weight:700"><%= urgentes.length %></div><div class="text-sm text-bold" style="color:var(--orange)">Urgentes (7 dias)</div></div>
+        <div style="background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--radius);padding:1rem;text-align:center"><div style="font-family:var(--font-display);font-size:2rem;color:var(--blue);font-weight:700"><%= proximos.length %></div><div class="text-sm text-blue text-bold">Próximos (30 dias)</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center"><div style="font-family:var(--font-display);font-size:2rem;color:var(--muted);font-weight:700"><%= futuros.length %></div><div class="text-sm text-muted text-bold">Futuros</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if(vencidos.length>0){ %>
+<div class="card card--red mb-4">
+  <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-exclamation-triangle"></i></div>Vencidos <span class="badge badge-red"><%= vencidos.length %></span></div></div>
+  <div class="card-body">
+    <% vencidos.forEach(p=>{ %>
+      <div class="prazo-card vencido">
+        <div class="prazo-dias"><%= Math.abs(p.diasRestantes) %><div style="font-size:.5rem;font-family:var(--font-body);font-weight:600">dias atrás</div></div>
+        <div class="prazo-info flex-1"><strong><%= p.descricao %></strong><span><a href="/clientes/<%= p.clienteId %>" class="text-red"><%= p.clienteNome %></a> · <%= p.processo||'Sem processo' %></span><span>Venceu: <%= moment(p.dataVencimento).format('DD/MM/YYYY') %></span></div>
+        <form action="/clientes/<%= p.clienteId %>/prazos/<%= p._id %>/concluir?_method=PUT" method="POST"><button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i></button></form>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<% if(urgentes.length>0){ %>
+<div class="card mb-4" style="border-top:3px solid var(--orange)">
+  <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--orange-bg);color:var(--orange)"><i class="fas fa-fire"></i></div>Urgentes — próximos 7 dias <span class="badge badge-orange"><%= urgentes.length %></span></div></div>
+  <div class="card-body">
+    <% urgentes.forEach(p=>{ %>
+      <div class="prazo-card urgente">
+        <div class="prazo-dias"><%= p.diasRestantes %><div style="font-size:.5rem;font-family:var(--font-body);font-weight:600">dias</div></div>
+        <div class="prazo-info flex-1"><strong><%= p.descricao %></strong><span><a href="/clientes/<%= p.clienteId %>"><%= p.clienteNome %></a> · <%= p.processo||'Sem processo' %></span><span>Vence: <%= moment(p.dataVencimento).format('DD/MM/YYYY') %></span></div>
+        <form action="/clientes/<%= p.clienteId %>/prazos/<%= p._id %>/concluir?_method=PUT" method="POST"><button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Concluir</button></form>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<% if(proximos.length>0){ %>
+<div class="card mb-4" style="border-top:3px solid var(--blue)">
+  <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-calendar-check"></i></div>Próximos 30 dias <span class="badge badge-blue"><%= proximos.length %></span></div></div>
+  <div class="card-body">
+    <% proximos.forEach(p=>{ %>
+      <div class="prazo-card proximo">
+        <div class="prazo-dias" style="color:var(--blue)"><%= p.diasRestantes %><div style="font-size:.5rem;font-family:var(--font-body);font-weight:600">dias</div></div>
+        <div class="prazo-info flex-1"><strong><%= p.descricao %></strong><span><a href="/clientes/<%= p.clienteId %>"><%= p.clienteNome %></a></span><span>Vence: <%= moment(p.dataVencimento).format('DD/MM/YYYY') %></span></div>
+        <form action="/clientes/<%= p.clienteId %>/prazos/<%= p._id %>/concluir?_method=PUT" method="POST"><button type="submit" class="btn btn-outline btn-sm"><i class="fas fa-check"></i> Concluir</button></form>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<% if(futuros.length>0){ %>
+<div class="card mb-4">
+  <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--surface);color:var(--muted)"><i class="fas fa-calendar"></i></div>Futuros <span class="badge badge-gray"><%= futuros.length %></span></div></div>
+  <div class="card-body">
+    <% futuros.forEach(p=>{ %>
+      <div class="prazo-card futuro">
+        <div class="prazo-dias" style="color:var(--blue)"><%= p.diasRestantes %><div style="font-size:.5rem;font-family:var(--font-body);font-weight:600">dias</div></div>
+        <div class="prazo-info flex-1"><strong><%= p.descricao %></strong><span><a href="/clientes/<%= p.clienteId %>"><%= p.clienteNome %></a></span><span>Vence: <%= moment(p.dataVencimento).format('DD/MM/YYYY') %></span></div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<% if(!vencidos.length&&!urgentes.length&&!proximos.length&&!futuros.length){ %>
+  <div class="card"><div class="card-body"><div class="empty-state"><i class="fas fa-check-circle" style="color:var(--green);opacity:1"></i><p>Nenhum prazo cadastrado. Adicione prazos na página de cada dossiê.</p></div></div></div>
+<% } %>
+<%- include('partials/footer') %>

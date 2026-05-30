@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+<div class="page-header">
+  <div class="page-title">Editar Qualificação<small><%= cliente.nome %></small></div>
+  <a href="/clientes/<%= cliente._id %>" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Voltar</a>
+</div>
+<div class="card card--blue" style="max-width:760px;margin:0 auto">
+  <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-user-edit"></i></div>Dados Pessoais</div></div>
+  <div class="card-body">
+    <form action="/clientes/<%= cliente._id %>/editar?_method=PUT" method="POST">
+      <div class="grid grid-2 gap-4">
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nome Completo <span class="required">*</span></label><input type="text" name="nome" class="form-control" value="<%= cliente.nome %>" required></div>
+        <div class="form-group"><label class="form-label">CPF / CNPJ</label><input type="text" name="cpf" class="form-control" value="<%= cliente.cpf||'' %>" oninput="mascaraCPFCNPJ(this)"></div>
+        <div class="form-group"><label class="form-label">RG</label><div class="input-group"><input type="text" name="rg" class="form-control" value="<%= cliente.rg||'' %>"><input type="text" name="rg_orgao" class="form-control" value="<%= cliente.rg_orgao||'' %>" style="max-width:100px" placeholder="Órgão"></div></div>
+        <div class="form-group"><label class="form-label">Estado Civil</label><select name="estado_civil" class="form-select"><% ['Solteiro(a)','Casado(a)','Divorciado(a)','Viúvo(a)','União Estável'].forEach(ec=>{%><option value="<%=ec%>" <%=cliente.estado_civil===ec?'selected':''%>><%=ec%></option><%})%></select></div>
+        <div class="form-group"><label class="form-label">Profissão</label><input type="text" name="profissao" class="form-control" value="<%= cliente.profissao||'' %>"></div>
+        <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input type="text" name="telefone" class="form-control" value="<%= cliente.telefone||'' %>" maxlength="15" oninput="mascaraTelefone(this)"></div>
+        <div class="form-group"><label class="form-label">CEP</label><input type="text" name="cep" class="form-control" value="<%= cliente.cep||'' %>" oninput="mascaraCEP(this)"></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label">Endereço Completo</label><input type="text" name="endereco" class="form-control" value="<%= cliente.endereco||'' %>"></div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <a href="/clientes/<%= cliente._id %>" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+<%- include('partials/footer') %>

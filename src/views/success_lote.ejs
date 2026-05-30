@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<div class="result-page" style="max-width:600px">
+  <div class="result-icon success"><i class="fas fa-layer-group"></i></div>
+  <h1 class="result-title">Lote Gerado!</h1>
+  <p class="result-msg"><%= gerados.length %> documento(s) prontos para <strong><%= cliente.nome %></strong>. Clique em cada um para baixar.</p>
+  <div class="card mb-4" style="text-align:left">
+    <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-download"></i></div>Documentos Prontos para Download</div></div>
+    <div class="card-body" style="padding:.75rem">
+      <% gerados.forEach(g=>{%>
+        <a href="/clientes/<%= cliente._id %>/download?arquivo=<%= encodeURIComponent(g) %>&tipo=peticao"
+           class="btn btn-outline btn-full mb-2" style="justify-content:flex-start;gap:.75rem">
+          <i class="fas fa-file-word text-green" style="font-size:1.1rem"></i>
+          <span style="flex:1;text-align:left"><%= g %>.docx</span>
+          <i class="fas fa-download text-muted"></i>
+        </a>
+      <%})%>
+    </div>
+    <div class="card-footer text-center text-sm text-muted"><i class="fas fa-info-circle"></i> Os arquivos também estão salvos na pasta do cliente no servidor.</div>
+  </div>
+  <div class="flex gap-3 justify-center">
+    <a href="/clientes/<%= cliente._id %>" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Voltar ao Dossiê</a>
+    <a href="/" class="btn btn-outline"><i class="fas fa-th-large"></i> Dashboard</a>
+  </div>
+</div>
+<%- include('partials/footer') %>

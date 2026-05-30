@@ -1,0 +1,10 @@
+const express = require('express');
+const router  = express.Router();
+const ctrl    = require('../controllers/apiController');
+const { asyncWrap } = require('../middlewares/errorHandler');
+router.get('/clientes',       asyncWrap(ctrl.listarClientes));
+router.get('/clientes/:id',   asyncWrap(ctrl.getCliente));
+router.get('/stats',          asyncWrap(ctrl.stats));
+router.get('/prazos',         asyncWrap(ctrl.prazos));
+router.get('/calcular-prazo', ctrl.calcularPrazo);
+module.exports = router;

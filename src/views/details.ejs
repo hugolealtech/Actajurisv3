@@ -1,0 +1,330 @@
+<% const currentPage='detalhe'; %>
+<%- include('partials/header') %>
+<% const badgeClass=cliente.polo_cliente==='Réu'?'badge-red':'badge-green';
+   const fase=cliente.fase_processual||'administrativa';
+   const faseLabel={administrativa:'Administrativa',judicial_1grau:'1º Grau',recursal:'Recursal',execucao:'Execução',encerrado:'Encerrado'}[fase]||fase; %>
+
+<div class="page-header">
+  <div class="page-title">Dossiê · <%= cliente.nome %>
+    <small><span class="badge <%=badgeClass%>"><%=cliente.polo_cliente||'Autor'%></span>&nbsp;<span class="fase-pill fase-<%=fase%>"><%=faseLabel%></span><% if(cliente.numero_processo){%>&nbsp;· <span style="font-family:var(--font-mono);font-size:.75rem"><%=cliente.numero_processo%></span><%}%><% if(cliente.arquivado){%>&nbsp;<span class="badge badge-gray"><i class="fas fa-archive"></i> Arquivado</span><%}%></small>
+  </div>
+  <div class="flex gap-2">
+    <form action="/clientes/<%= cliente._id %>/arquivar?_method=PUT" method="POST"><button type="submit" class="btn btn-ghost btn-sm" title="<%= cliente.arquivado?'Desarquivar':'Arquivar' %>"><i class="fas fa-<%= cliente.arquivado?'box-open':'archive' %>"></i></button></form>
+    <a href="/clientes/<%= cliente._id %>/editar" class="btn btn-outline btn-sm"><i class="fas fa-user-edit"></i> Editar Ficha</a>
+    <a href="/" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i> Voltar</a>
+  </div>
+</div>
+
+<div class="grid grid-sidebar gap-4">
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="card card--gold mb-4">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--gold-bg);color:var(--gold)"><i class="fas fa-user-tie"></i></div>Qualificação</div></div>
+      <div class="card-body" style="font-size:.85rem">
+        <div class="flex flex-col gap-2">
+          <div><span class="text-muted">CPF</span><br><strong><%=cliente.cpf||'—'%></strong></div>
+          <div><span class="text-muted">RG</span><br><strong><%=[cliente.rg,cliente.rg_orgao].filter(Boolean).join(' ')||'—'%></strong></div>
+          <div><span class="text-muted">Nascimento</span><br><strong><%=cliente.data_nascimento?moment(cliente.data_nascimento).format('DD/MM/YYYY'):'—'%></strong></div>
+          <div><span class="text-muted">WhatsApp</span><br><%if(cliente.telefone){%><a href="https://wa.me/55<%=cliente.telefone.replace(/\D/g,'')%>" target="_blank" class="text-green text-bold"><i class="fab fa-whatsapp"></i> <%=cliente.telefone%></a><%}else{%><span>—</span><%}%></div>
+          <div><span class="text-muted">Endereço</span><br><span class="text-slate"><%=cliente.endereco||'—'%></span></div>
+          <%if(cliente.tipo_representacao&&cliente.nome_representante){%>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:.6rem .8rem;border:1px solid var(--border)">
+            <span class="text-muted text-xs">Representação</span><br>
+            <strong><%=cliente.tipo_representacao%> <%=cliente.nome_representante%></strong>
+            <%if(cliente.cpf_representante){%><br><span class="text-muted text-xs">CPF: <%=cliente.cpf_representante%></span><%}%>
+          </div>
+          <%}%>
+        </div>
+      </div>
+      <div class="card-footer flex gap-2">
+        <a href="/clientes/<%=cliente._id%>/cumprimento" class="btn btn-outline btn-sm flex-1" style="justify-content:center"><i class="fas fa-calculator text-gold"></i> Liquidação</a>
+        <form action="/clientes/<%=cliente._id%>?_method=DELETE" method="POST" onsubmit="return confirm('Excluir permanentemente?')" style="flex:1">
+          <button type="submit" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;color:var(--red)"><i class="fas fa-trash-alt"></i> Excluir</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card card--green mb-4">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-chess-knight"></i></div>Tese &amp; Fase</div></div>
+      <div class="card-body">
+        <form action="/clientes/<%=cliente._id%>?_method=PUT" method="POST">
+          <div class="form-group mb-3"><label class="form-label">Objeto / Benefício</label>
+            <select name="tipo_acao" class="form-select">
+              <option value="<%=cliente.tipo_acao%>" selected>📍 <%=cliente.tipo_acao||'Não definido'%></option>
+              <optgroup label="Saúde e Incapacidade"><option value="Auxílio Doença">Auxílio por Incapacidade Temporária</option><option value="Auxílio Acidentário">Auxílio-Acidente</option><option value="Aposentadoria Invalidez">Aposentadoria por Incapacidade Permanente</option></optgroup>
+              <optgroup label="Aposentadorias"><option value="Aposentadoria Idade Urbana">Aposentadoria por Idade Urbana</option><option value="Aposentadoria Rural">Aposentadoria Rural</option><option value="Aposentadoria Tempo Contribuição">Aposentadoria por Tempo de Contribuição</option><option value="Aposentadoria Especial">Aposentadoria Especial</option><option value="Aposentadoria Pessoa Deficiência">Aposentadoria da Pessoa com Deficiência</option><option value="Aposentadoria Híbrida">Aposentadoria Híbrida</option></optgroup>
+              <optgroup label="Assistencial e Família"><option value="BPC/LOAS">BPC / LOAS</option><option value="Pensão por Morte">Pensão por Morte</option><option value="Salário Maternidade">Salário-Maternidade</option><option value="Auxílio Reclusão">Auxílio-Reclusão</option></optgroup>
+              <optgroup label="Revisões"><option value="Revisão da Vida Toda">Revisão da Vida Toda</option><option value="Revisão de Benefício">Revisão de Benefício</option><option value="Planejamento Previdenciário">Planejamento Previdenciário</option><option value="Averbação de Tempo">Averbação de Tempo</option></optgroup>
+              <optgroup label="Teste"><option value="Petição Teste">Petição Teste</option></optgroup>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-outline btn-sm btn-full mb-3"><i class="fas fa-sync-alt"></i> Atualizar Tese</button>
+        </form>
+        <form action="/clientes/<%=cliente._id%>/complementar?_method=PUT" method="POST">
+          <div class="form-group"><label class="form-label">Fase Processual</label>
+            <select name="fase_processual" class="form-select" onchange="this.form.submit()">
+              <%[['administrativa','Administrativa'],['judicial_1grau','1º Grau'],['recursal','Recursal'],['execucao','Execução'],['encerrado','Encerrado']].forEach(([v,l])=>{%>
+                <option value="<%=v%>" <%=cliente.fase_processual===v?'selected':''%>><%=l%></option>
+              <%})%>
+            </select>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card card--red mb-4" id="prazos">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-hourglass-half"></i></div>Prazos</div><a href="/agenda" class="btn btn-ghost btn-sm"><i class="fas fa-calendar-alt"></i></a></div>
+      <div class="card-body">
+        <% const prazosAtivos=(cliente.prazos||[]).filter(p=>!p.concluido).sort((a,b)=>new Date(a.dataVencimento)-new Date(b.dataVencimento)); %>
+        <%if(prazosAtivos.length>0){prazosAtivos.slice(0,3).forEach(p=>{const dias=moment(p.dataVencimento).diff(moment(),'days');const cls=dias<0?'vencido':dias<=7?'urgente':dias<=30?'proximo':'futuro';%>
+          <div class="prazo-card <%=cls%> mb-2">
+            <div class="prazo-dias"><%=Math.abs(dias)%><div style="font-size:.5rem;font-family:var(--font-body);font-weight:600">dias</div></div>
+            <div class="prazo-info flex-1"><strong style="font-size:.8rem"><%=p.descricao%></strong><span><%=moment(p.dataVencimento).format('DD/MM/YYYY')%></span></div>
+            <form action="/clientes/<%=cliente._id%>/prazos/<%=p._id%>/concluir?_method=PUT" method="POST"><button type="submit" class="btn btn-outline btn-sm btn-icon" title="Concluir"><i class="fas fa-check text-green"></i></button></form>
+          </div>
+        <%})}else{%><p class="text-sm text-muted text-center mb-3">Nenhum prazo ativo.</p><%}%>
+        <form action="/clientes/<%=cliente._id%>/prazos" method="POST" class="mt-3" style="border-top:1px solid var(--border);padding-top:.75rem">
+          <div class="grid grid-2 gap-2 mb-2">
+            <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição do Prazo</label><input type="text" name="descricao" class="form-control" placeholder="Ex: Contrarrazões ao Recurso Inominado" required></div>
+            <div class="form-group"><label class="form-label">Vencimento</label><input type="date" name="dataVencimento" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Tipo</label><select name="tipo" class="form-select"><option value="recurso">Recurso</option><option value="protocolo">Protocolo</option><option value="audiencia">Audiência</option><option value="outro">Outro</option></select></div>
+          </div>
+          <button type="submit" class="btn btn-danger btn-sm btn-full"><i class="fas fa-plus"></i> Adicionar Prazo</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Timeline v3 com re-download -->
+    <div class="card" id="timeline">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--purple-bg);color:var(--purple)"><i class="fas fa-history"></i></div>Timeline</div><span class="badge badge-purple"><%=(cliente.docs_gerados||[]).length%></span></div>
+      <div class="card-body" style="max-height:320px;overflow-y:auto;padding:.75rem">
+        <%if((cliente.docs_gerados||[]).length>0){%>
+          <div class="timeline">
+            <%cliente.docs_gerados.forEach(d=>{%>
+              <div class="timeline-item <%=d.tipo%>">
+                <div class="timeline-body">
+                  <div style="flex:1">
+                    <div class="timeline-title"><%=d.arquivo%></div>
+                    <div class="timeline-date"><%=moment(d.geradoEm).format('DD/MM/YYYY [às] HH:mm')%></div>
+                  </div>
+                  <a href="/clientes/<%=cliente._id%>/download?arquivo=<%=encodeURIComponent(d.arquivo)%>&tipo=<%=d.tipo==='contrato'?'contrato':'peticao'%>"
+                     class="btn btn-ghost btn-icon btn-sm" title="Baixar novamente" style="flex-shrink:0">
+                    <i class="fas fa-download text-gold"></i>
+                  </a>
+                </div>
+              </div>
+            <%})%>
+          </div>
+        <%}else{%><p class="text-sm text-muted text-center">Nenhum documento gerado ainda.</p><%}%>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <!-- Central de Dados -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--ink-2);color:var(--gold)"><i class="fas fa-database"></i></div>Central de Dados do Processo</div><span class="badge badge-gray">Edição</span></div>
+      <div class="card-body">
+        <form action="/clientes/<%=cliente._id%>/complementar?_method=PUT" method="POST">
+          <div class="section-divider"><div class="dot"></div>1. Qualificação e Representação</div>
+          <div class="grid grid-4 gap-4 mb-4">
+            <div class="form-group"><label class="form-label">Nascimento</label><input type="date" name="data_nascimento" class="form-control" value="<%=cliente.data_nascimento?moment(cliente.data_nascimento).format('YYYY-MM-DD'):''%>"></div>
+            <div class="form-group"><label class="form-label">Estado Civil</label><select name="estado_civil" class="form-select"><option value="">Selecione...</option><%['Solteiro(a)','Casado(a)','Divorciado(a)','Viúvo(a)','União Estável'].forEach(ec=>{%><option value="<%=ec%>" <%=cliente.estado_civil===ec?'selected':''%>><%=ec%></option><%})%></select></div>
+            <div class="form-group"><label class="form-label">Profissão</label><input type="text" name="profissao" class="form-control" value="<%=cliente.profissao||''%>"></div>
+            <div class="form-group"><label class="form-label">CEP</label><input type="text" name="cep" class="form-control" value="<%=cliente.cep||''%>" oninput="mascaraCEP(this)"></div>
+          </div>
+          <div class="grid grid-4 gap-4 mb-4" style="background:var(--surface);padding:1rem;border-radius:var(--radius);border:1px solid var(--border)">
+            <div class="form-group"><label class="form-label">Polo</label><select name="polo_cliente" class="form-select"><option value="Autor" <%=(!cliente.polo_cliente||cliente.polo_cliente==='Autor')?'selected':''%>>Autor</option><option value="Réu" <%=cliente.polo_cliente==='Réu'?'selected':''%>>Réu</option></select></div>
+            <div class="form-group"><label class="form-label">Representação</label><select name="tipo_representacao" class="form-select"><option value="">(Capacidade Plena)</option><%['representado(a) por','assistido(a) por','curatelado(a) por'].forEach(t=>{%><option value="<%=t%>" <%=cliente.tipo_representacao===t?'selected':''%>><%=t.charAt(0).toUpperCase()+t.slice(1)%></option><%})%></select></div>
+            <div class="form-group"><label class="form-label">Nome Representante</label><input type="text" name="nome_representante" class="form-control" value="<%=cliente.nome_representante||''%>"></div>
+            <div class="form-group"><label class="form-label">CPF Representante</label><input type="text" name="cpf_representante" class="form-control" value="<%=cliente.cpf_representante||''%>" oninput="mascaraCPFCNPJ(this)"></div>
+            <div class="form-group" style="grid-column:1/-1"><label class="form-label">WhatsApp Representante</label><input type="text" name="telefone_representante" class="form-control" value="<%=cliente.telefone_representante||''%>" maxlength="15" oninput="mascaraTelefone(this)"></div>
+          </div>
+          <div class="section-divider"><div class="dot" style="background:var(--green)"></div>2. Fase Administrativa (INSS)</div>
+          <div class="grid grid-4 gap-4 mb-4">
+            <div class="form-group"><label class="form-label">DER</label><input type="date" name="der" class="form-control" value="<%=cliente.der?moment(cliente.der).format('YYYY-MM-DD'):''%>"></div>
+            <div class="form-group"><label class="form-label">NB</label><input type="text" name="nb" class="form-control" value="<%=cliente.nb||''%>"></div>
+            <div class="form-group"><label class="form-label">NIT / PIS</label><input type="text" name="nit" class="form-control" value="<%=cliente.nit||''%>"></div>
+            <div class="form-group"><label class="form-label">Data Negativa</label><input type="date" name="data_negativa" class="form-control" value="<%=cliente.data_negativa?moment(cliente.data_negativa).format('YYYY-MM-DD'):''%>"></div>
+            <div class="form-group" style="grid-column:1/-1"><label class="form-label">Motivo da Negativa</label><input type="text" name="negativa" class="form-control" value="<%=cliente.negativa||''%>" placeholder="Ex: ausência de tempo de contribuição mínimo"></div>
+          </div>
+          <div class="section-divider"><div class="dot" style="background:var(--blue)"></div>3. Processo e Endereçamento</div>
+          <div class="form-group mb-4"><label class="form-label">Número do Processo</label><input type="text" name="numero_processo" class="form-control mono" value="<%=cliente.numero_processo||''%>" placeholder="0000000-00.0000.0.00.0000" oninput="mascaraNumProc(this)"></div>
+          <div class="grid grid-3 gap-4 mb-4">
+            <div class="form-group"><label class="form-label">Vara (Nº)</label><input type="text" name="vara" id="vara" class="form-control" value="<%=cliente.vara||''%>" placeholder="Ex: 13"></div>
+            <div class="form-group"><label class="form-label">Jurisdição</label><select name="jurisdicao" id="jurisdicao" class="form-select"><option value="<%=cliente.jurisdicao||''%>" selected><%=cliente.jurisdicao||'Selecione...'%></option><%['VARA FEDERAL','VARA FEDERAL DOS JUIZADOS ESPECIAIS','VARA CÍVEL','VARA DOS JUIZADOS ESPECIAIS CÍVEIS','VARA CRIMINAL','VARA DE FAMÍLIA E SUCESSÕES'].forEach(j=>{%><option value="<%=j%>"><%=j%></option><%})%></select></div>
+            <div class="form-group"><label class="form-label">Circunscrição / Local</label><input type="text" name="circunscricao_judiciaria" id="circunscricao" class="form-control" value="<%=cliente.circunscricao_judiciaria||''%>"></div>
+          </div>
+          <div class="preview-box mb-4">
+            <div class="preview-caption"><i class="fas fa-eye"></i> Pré-visualização do Endereçamento</div>
+            <div class="preview-heading">AO JUÍZO DA <span id="pv" class="text-gold"><%=cliente.vara||'___'%></span> <span id="pj" class="text-gold"><%=cliente.jurisdicao||'_______'%></span> <span id="pc" class="text-gold"><%=cliente.circunscricao_judiciaria||'_______'%></span></div>
+            <div class="preview-hint">Cole no Word: <code>AO JUÍZO DA {vara} {jurisdicao} {circunscricao_judiciaria}</code></div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem">
+            <div class="flex items-center justify-between mb-3">
+              <strong style="font-size:.875rem;color:var(--ink-2)"><i class="fas fa-user-shield"></i> Parte Adversa</strong>
+              <div class="reu-quick-fill"><span class="text-sm text-muted">Preencher:</span><button type="button" class="reu-btn" onclick="pReu('inss')">INSS</button><button type="button" class="reu-btn" onclick="pReu('uniao')">União Federal</button><button type="button" class="reu-btn" onclick="pReu('cef')">CEF</button></div>
+            </div>
+            <div class="grid grid-2 gap-4">
+              <div class="form-group"><label class="form-label">Nome da Parte Adversa</label><input type="text" name="nome_reu" id="nome_reu" class="form-control" value="<%=cliente.nome_reu||''%>"></div>
+              <div class="form-group"><label class="form-label">CPF / CNPJ</label><input type="text" name="cnpj_reu" id="cnpj_reu" class="form-control" value="<%=cliente.cnpj_reu||''%>"></div>
+              <div class="form-group"><label class="form-label">Representante Legal</label><input type="text" name="representante_reu" id="representante_reu" class="form-control" value="<%=cliente.representante_reu||''%>"></div>
+              <div class="form-group"><label class="form-label">Endereço</label><input type="text" name="endereco_reu" id="endereco_reu" class="form-control" value="<%=cliente.endereco_reu||''%>"></div>
+            </div>
+          </div>
+          <div class="section-divider"><div class="dot" style="background:var(--purple)"></div>3.1 Fase Recursal</div>
+          <div class="grid grid-3 gap-4 mb-4">
+            <div class="form-group"><label class="form-label">Publ. Decisão / Acórdão</label><input type="date" name="data_publicacao_acordao" class="form-control" value="<%=cliente.data_publicacao_acordao?moment(cliente.data_publicacao_acordao).format('YYYY-MM-DD'):''%>"></div>
+            <div class="form-group"><label class="form-label">ID da Gratuidade</label><input type="text" name="id_gratuidade" class="form-control" value="<%=cliente.id_gratuidade||''%>"></div>
+            <div class="form-group"><label class="form-label">ID do Acórdão</label><input type="text" name="id_decisao_recorrida" class="form-control" value="<%=cliente.id_decisao_recorrida||''%>"></div>
+          </div>
+          <div class="section-divider"><div class="dot" style="background:var(--gold)"></div>4. Fatos e Fundamentação</div>
+          <div class="grid gap-4 mb-4">
+            <div class="form-group"><label class="form-label">Fatos / Situação Principal</label><input type="text" name="detalhes_caso" class="form-control" value="<%=cliente.detalhes_caso||''%>"></div>
+            <div class="form-group"><label class="form-label">Jurisprudência Primária</label><textarea name="jurisprudencia" class="form-control" rows="3"><%=cliente.jurisprudencia||''%></textarea></div>
+            <div class="grid grid-2 gap-4">
+              <div class="form-group"><label class="form-label">Tese Secundária</label><textarea name="jurisprudencia_2" class="form-control" rows="2"><%=cliente.jurisprudencia_2||''%></textarea></div>
+              <div class="form-group"><label class="form-label">Súmula / Doutrina</label><textarea name="jurisprudencia_3" class="form-control" rows="2"><%=cliente.jurisprudencia_3||''%></textarea></div>
+            </div>
+            <div class="form-group"><label class="form-label">Citação Adicional (jurisprudencia_4)</label><textarea name="jurisprudencia_4" class="form-control" rows="2"><%=cliente.jurisprudencia_4||''%></textarea></div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg"><i class="fas fa-save"></i> Gravar Dados no Sistema</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Fábrica de Petições v3 -->
+    <div class="card card--gold mb-4">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--gold-bg);color:var(--gold)"><i class="fas fa-print"></i></div>Fábrica de Petições</div><span class="text-sm text-muted">Grave antes de emitir</span></div>
+      <!-- v3: Banner de download -->
+      <div style="padding:.75rem 1.5rem;border-bottom:1px solid var(--border)">
+        <div class="download-banner">
+          <i class="fas fa-download"></i>
+          <div><strong>Download automático · v3.0</strong><span>O documento é salvo no servidor <em>e</em> baixado no seu computador automaticamente. Escolha onde salvar quando o navegador perguntar.</span></div>
+        </div>
+        <div class="folder-tree">
+          <div class="yl">📁 drive_simulado/</div>
+          <div class="bl" style="padding-left:1.25rem">📂 <%=moment(cliente.createdAt).year()%>/</div>
+          <div class="bl" style="padding-left:2.5rem">📂 <%=cliente.nome.toUpperCase()%>/</div>
+          <div style="padding-left:3.75rem;color:#abb2bf">📄 01. Contrato e Procuração/</div>
+          <div style="padding-left:3.75rem;color:#98c379">📄 02. Petições/  ← documentos gerados aqui</div>
+          <div style="padding-left:3.75rem;color:#abb2bf">📄 03. Provas/</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-2 gap-4 mb-4">
+          <div style="border:1px solid var(--green);border-radius:var(--radius);padding:1.25rem;background:var(--green-bg)">
+            <div class="flex items-center gap-2 mb-2"><i class="fas fa-file-word" style="color:var(--green);font-size:1.1rem"></i><strong style="color:var(--green)">Petição Inicial</strong></div>
+            <p class="text-sm text-slate mb-3">Gera a peça inaugural baseada na Tese Estratégica.</p>
+            <form action="/clientes/<%=cliente._id%>/gerar-peticao" method="POST"><button type="submit" class="btn btn-success btn-full"><i class="fas fa-magic"></i> Gerar e Baixar</button></form>
+          </div>
+          <div style="border:1px solid var(--gold);border-radius:var(--radius);padding:1.25rem;background:var(--gold-bg)">
+            <div class="flex items-center gap-2 mb-2"><i class="fas fa-bolt" style="color:var(--gold);font-size:1.1rem"></i><strong style="color:var(--gold-dim)">Petição de Rotina</strong></div>
+            <p class="text-sm text-slate mb-2">Expedientes e recursos processuais.</p>
+            <form action="/clientes/<%=cliente._id%>/gerar-rotina" method="POST">
+              <select name="modelo_rotina" class="form-select mb-2" required>
+                <option value="" disabled selected>Escolha o documento...</option>
+                <optgroup label="1. Impulso Processual"><option value="rotina_juntada.docx">Petição de Juntada</option><option value="rotina_manifestacao_laudo_inicial.docx">Manifestação Sobre o Laudo</option><option value="rotina_prioridade.docx">Pedido de Prioridade</option><option value="rotina_habilitacao_obito.docx">Habilitação nos Autos</option><option value="rotina_desistencia.docx">Pedido de Desistência</option><option value="rotina_extincao_acordo.docx">Extinção por Acordo</option><option value="rotina_tutela_urgencia.docx">Tutela de Urgência</option></optgroup>
+                <optgroup label="2. Perícia Judicial"><option value="rotina_quesitos.docx">Quesitos e Assistente</option><option value="rotina_impugnacao_laudo.docx">Impugnação ao Laudo</option><option value="rotina_esclarecimentos_perito.docx">Esclarecimentos ao Perito</option><option value="rotina_nova_pericia.docx">Nova Perícia</option><option value="rotina_prova_testemunhal.docx">Prova Testemunhal</option></optgroup>
+                <optgroup label="3. Administrativo (INSS)"><option value="rotina_recurso_crps.docx">Recurso Ordinário (CRPS)</option><option value="rotina_reconsideracao.docx">Pedido de Reconsideração</option><option value="rotina_desarquivamento.docx">Desarquivamento</option><option value="rotina_inconformidade.docx">Inconformidade</option><option value="rotina_revisao_acordao.docx">Revisão de Acórdão</option><option value="rotina_cumprimento_ceab.docx">Cumprimento CEAB/JEF</option></optgroup>
+                <optgroup label="4. Liquidação"><option value="rotina_memoria_calculo.docx">Memória de Cálculo</option><option value="rotina_impugnacao_calculos.docx">Impugnação aos Cálculos</option><option value="rotina_cumprimento_sentenca.docx">Cumprimento de Sentença</option><option value="rotina_habilitacao_rpv.docx">Habilitação RPV/Precatório</option></optgroup>
+                <optgroup label="5. Expediente Diverso"><option value="rotina_vista_autos.docx">Vista dos Autos</option><option value="rotina_intimacao_parte.docx">Intimação da Parte</option><option value="rotina_retificacao_polo.docx">Retificação do Polo</option><option value="rotina_justica_gratuita.docx">Justiça Gratuita</option><option value="rotina_contestacao_inss.docx">Contestação</option></optgroup>
+                <optgroup label="6. Recursos"><option value="rotina_embargos_declaracao.docx">Embargos de Declaração</option><option value="rotina_recurso_inominado.docx">Recurso Inominado</option><option value="rotina_recurso_apelacao.docx">Apelação (TRF)</option><option value="rotina_recurso_ordinario.docx">Recurso Ordinário</option><option value="rotina_recurso_especial.docx">Recurso Especial (STJ)</option><option value="rotina_recurso_extraordinario.docx">Recurso Extraordinário (STF)</option></optgroup>
+                <optgroup label="7. Contrarrazões (prazo automático)"><option value="rotina_contrarrazoes_inominado.docx">Contrarrazões · Inominado (10 dias úteis)</option><option value="rotina_contrarrazoes_apelacao.docx">Contrarrazões · Apelação (15 dias úteis)</option><option value="rotina_contrarrazoes_ordinario.docx">Contrarrazões · Ordinário (15 dias úteis)</option><option value="rotina_contrarrazoes_especial.docx">Contrarrazões · Especial (15 dias úteis)</option><option value="rotina_contrarrazoes_extraordinario.docx">Contrarrazões · Extraordinário (15 dias úteis)</option><option value="rotina_contrarrazoes_tnu.docx">Contrarrazões · TNU (15 dias úteis)</option></optgroup>
+              </select>
+              <button type="submit" class="btn btn-gold btn-full"><i class="fas fa-cog"></i> Processar e Baixar</button>
+            </form>
+          </div>
+        </div>
+        <div style="border:1px solid var(--purple);border-radius:var(--radius);padding:1.25rem;background:var(--purple-bg)">
+          <div class="flex items-center gap-2 mb-2"><i class="fas fa-layer-group" style="color:var(--purple);font-size:1.1rem"></i><strong style="color:var(--purple)">Geração em Lote</strong><span class="badge badge-purple">Novo</span></div>
+          <p class="text-sm text-slate mb-3">Selecione múltiplos documentos para gerar de uma vez.</p>
+          <form action="/clientes/<%=cliente._id%>/gerar-lote" method="POST">
+            <div class="grid grid-3 gap-2 mb-3">
+              <%[['rotina_juntada.docx','Juntada'],['rotina_prioridade.docx','Prioridade'],['rotina_tutela_urgencia.docx','Tutela Urgência'],['rotina_quesitos.docx','Quesitos'],['rotina_impugnacao_laudo.docx','Impug. Laudo'],['rotina_vista_autos.docx','Vista dos Autos']].forEach(([v,l])=>{%>
+                <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:600;cursor:pointer;padding:.4rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white)">
+                  <input type="checkbox" name="modelos" value="<%=v%>"> <%=l%>
+                </label>
+              <%})%>
+            </div>
+            <button type="submit" class="btn btn-purple btn-full"><i class="fas fa-layer-group"></i> Gerar Selecionados</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anotações -->
+    <div class="card mb-4" id="anotacoes">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--gold-bg);color:var(--gold)"><i class="fas fa-sticky-note"></i></div>Anotações Internas</div><span class="badge badge-gray"><%=(cliente.anotacoes||[]).length%></span></div>
+      <div class="card-body">
+        <form action="/clientes/<%=cliente._id%>/anotacoes" method="POST" class="mb-4">
+          <div class="form-group mb-2"><label class="form-label">Nova Anotação (uso interno — não vai para documentos)</label><textarea name="texto" class="form-control" rows="2" placeholder="Ex: Cliente informou que irá ao INSS na próxima semana..."></textarea></div>
+          <div class="flex justify-end"><button type="submit" class="btn btn-gold btn-sm"><i class="fas fa-plus"></i> Adicionar</button></div>
+        </form>
+        <%if((cliente.anotacoes||[]).length>0){[...cliente.anotacoes].reverse().forEach(a=>{%>
+          <div class="anotacao-item">
+            <div class="flex-1"><div class="anotacao-texto"><%=a.texto%></div><div class="anotacao-meta"><i class="fas fa-clock"></i> <%=moment(a.criadaEm).format('DD/MM/YYYY [às] HH:mm')%></div></div>
+            <form action="/clientes/<%=cliente._id%>/anotacoes/<%=a._id%>?_method=DELETE" method="POST" onsubmit="return confirm('Excluir esta anotação?')">
+              <button type="submit" class="btn btn-ghost btn-icon btn-sm"><i class="fas fa-times text-red"></i></button>
+            </form>
+          </div>
+        <%})}else{%><p class="text-sm text-muted text-center">Nenhuma anotação registrada.</p><%}%>
+      </div>
+    </div>
+
+    <!-- Dicionário de Tags -->
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-book-open"></i></div>Dicionário Oficial de Tags</div><span class="text-sm text-muted">Cole nos modelos Word</span></div>
+      <div class="card-body">
+        <div class="grid grid-3 gap-4">
+          <div><p class="text-xs text-bold mb-2" style="color:var(--blue);text-transform:uppercase;letter-spacing:.8px"><i class="fas fa-id-card"></i> Cliente</p>
+            <div class="tag-item"><span class="tag-key">{nome}</span><span class="tag-desc">Nome do Cliente</span></div>
+            <div class="tag-item"><span class="tag-key">{cpf}</span><span class="tag-desc">CPF/CNPJ</span></div>
+            <div class="tag-item"><span class="tag-key">{rg}</span><span class="tag-desc">RG + Órgão</span></div>
+            <div class="tag-item"><span class="tag-key">{nacionalidade}</span><span class="tag-desc">Nacionalidade</span></div>
+            <div class="tag-item"><span class="tag-key">{estado_civil}</span><span class="tag-desc">Estado Civil</span></div>
+            <div class="tag-item"><span class="tag-key">{profissao}</span><span class="tag-desc">Profissão</span></div>
+            <div class="tag-item"><span class="tag-key">{endereco}</span><span class="tag-desc">Endereço</span></div>
+            <div class="tag-item"><span class="tag-key">{cep}</span><span class="tag-desc">CEP</span></div>
+            <div class="tag-item"><span class="tag-key">{telefone}</span><span class="tag-desc">Telefone</span></div>
+            <div class="tag-item"><span class="tag-key">{data_nascimento}</span><span class="tag-desc">Nascimento</span></div>
+            <div class="tag-item purple"><span class="tag-key">{idade_completa}</span><span class="tag-desc">Idade detalhada</span></div>
+            <div class="tag-item green"><span class="tag-key">{tipo_representacao}</span><span class="tag-desc">Tipo representação</span></div>
+            <div class="tag-item green"><span class="tag-key">{nome_representante}</span><span class="tag-desc">Representante</span></div>
+            <div class="tag-item green"><span class="tag-key">{cpf_representante}</span><span class="tag-desc">CPF Representante</span></div>
+          </div>
+          <div><p class="text-xs text-bold mb-2" style="color:var(--blue);text-transform:uppercase;letter-spacing:.8px"><i class="fas fa-file-invoice"></i> Processo</p>
+            <div class="tag-item blue"><span class="tag-key">{numero_processo}</span><span class="tag-desc">Nº dos Autos</span></div>
+            <div class="tag-item blue"><span class="tag-key">{vara}</span><span class="tag-desc">Nº da Vara</span></div>
+            <div class="tag-item blue"><span class="tag-key">{jurisdicao}</span><span class="tag-desc">Tipo de Vara</span></div>
+            <div class="tag-item blue"><span class="tag-key">{circunscricao_judiciaria}</span><span class="tag-desc">Local/Região</span></div>
+            <div class="tag-item"><span class="tag-key">{nome_reu}</span><span class="tag-desc">Nome Adverso</span></div>
+            <div class="tag-item"><span class="tag-key">{cnpj_reu}</span><span class="tag-desc">CNPJ Adverso</span></div>
+            <div class="tag-item"><span class="tag-key">{representante_reu}</span><span class="tag-desc">Rep. Legal</span></div>
+            <div class="tag-item"><span class="tag-key">{endereco_reu}</span><span class="tag-desc">End. Adverso</span></div>
+            <div class="tag-item green"><span class="tag-key">{der}</span><span class="tag-desc">DER</span></div>
+            <div class="tag-item green"><span class="tag-key">{nb}</span><span class="tag-desc">Nº Benefício</span></div>
+            <div class="tag-item green"><span class="tag-key">{nit}</span><span class="tag-desc">NIT / PIS</span></div>
+          </div>
+          <div><p class="text-xs text-bold mb-2" style="color:var(--blue);text-transform:uppercase;letter-spacing:.8px"><i class="fas fa-gavel"></i> Teses e Prazos</p>
+            <div class="tag-item red"><span class="tag-key">{negativa}</span><span class="tag-desc">Motivo Negativa</span></div>
+            <div class="tag-item red"><span class="tag-key">{data_negativa}</span><span class="tag-desc">Data Negativa</span></div>
+            <div class="tag-item"><span class="tag-key">{doenca}</span><span class="tag-desc">Fatos/Patologia</span></div>
+            <div class="tag-item"><span class="tag-key">{jurisprudencia}</span><span class="tag-desc">Tese Primária</span></div>
+            <div class="tag-item"><span class="tag-key">{jurisprudencia_2}</span><span class="tag-desc">Tese Secundária</span></div>
+            <div class="tag-item"><span class="tag-key">{jurisprudencia_3}</span><span class="tag-desc">Súmula/Doutrina</span></div>
+            <div class="tag-item"><span class="tag-key">{jurisprudencia_4}</span><span class="tag-desc">Citação Adicional</span></div>
+            <div class="tag-item"><span class="tag-key">{honorarios}</span><span class="tag-desc">Honorários</span></div>
+            <div class="tag-item purple"><span class="tag-key">{id_gratuidade}</span><span class="tag-desc">ID Gratuidade</span></div>
+            <div class="tag-item purple"><span class="tag-key">{id_decisao}</span><span class="tag-desc">ID Acórdão</span></div>
+            <div class="tag-item red"><span class="tag-key">{prazo_recurso}</span><span class="tag-desc">Vencimento Legal</span></div>
+            <div class="tag-item"><span class="tag-key">{data_hoje}</span><span class="tag-desc">Data da Geração</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer text-center text-sm text-muted">Copie as tags com as chaves { } exatamente como estão nos seus modelos Word.</div>
+    </div>
+  </main>
+</div>
+<%- include('partials/footer') %>

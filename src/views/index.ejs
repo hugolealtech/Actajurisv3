@@ -1,0 +1,98 @@
+<% const currentPage='dashboard'; %>
+<%- include('partials/header') %>
+<div class="page-header">
+  <div class="page-title">Dashboard<small>Visão geral · Oliveira & Oliveira Leal</small></div>
+  <a href="/novo" class="btn btn-gold"><i class="fas fa-plus"></i> Novo Dossiê</a>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card gold"><div class="kpi-icon"><i class="fas fa-folder-open"></i></div><div><div class="kpi-label">Total de Clientes</div><div class="kpi-value"><%= kpis.totalClientes %></div></div></div>
+  <div class="kpi-card green"><div class="kpi-icon"><i class="fas fa-file-alt"></i></div><div><div class="kpi-label">Docs Gerados Hoje</div><div class="kpi-value"><%= kpis.docsHoje %></div></div></div>
+  <div class="kpi-card red"><div class="kpi-icon"><i class="fas fa-clock"></i></div><div><div class="kpi-label">Prazos em 7 Dias</div><div class="kpi-value"><%= kpis.prazosUrgentes %></div></div></div>
+  <div class="kpi-card blue"><div class="kpi-icon"><i class="fas fa-exclamation-circle"></i></div><div><div class="kpi-label">Sem Processo</div><div class="kpi-value"><%= kpis.semProcesso %></div></div></div>
+</div>
+
+<div class="grid grid-2 gap-4 mb-4">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--gold-bg);color:var(--gold)"><i class="fas fa-chart-pie"></i></div>Distribuição por Tese</div></div>
+    <div class="card-body" style="height:220px;position:relative">
+      <% if(porTipo.length>0){ %><canvas id="chartTipos"></canvas><script>window.__chartData=<%- JSON.stringify(porTipo) %>;</script>
+      <% }else{ %><div class="empty-state" style="padding:2rem"><i class="fas fa-chart-pie"></i><p>Sem dados suficientes</p></div><% } %>
+    </div>
+  </div>
+  <div class="card card--red">
+    <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-fire"></i></div>Prazos Urgentes (7 dias)</div><a href="/agenda" class="btn btn-outline btn-sm">Ver Agenda</a></div>
+    <div class="card-body">
+      <% if(kpis.prazosUrgentes>0){ %><p class="text-sm text-muted text-center">Acesse a <a href="/agenda" class="text-red text-bold">Agenda de Prazos</a> para detalhes.</p>
+      <% }else{ %><div class="empty-state" style="padding:1.5rem"><i class="fas fa-check-circle" style="color:var(--green)"></i><p>Nenhum prazo urgente. Tudo em dia!</p></div><% } %>
+    </div>
+  </div>
+</div>
+
+<form method="GET" action="/">
+  <div class="search-bar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" name="busca" class="search-input" placeholder="Buscar por nome, CPF ou nº do processo..." value="<%= busca %>"></div>
+    <div class="search-filters">
+      <select name="tipo" class="filter-select" onchange="this.form.submit()">
+        <option value="">Todas as teses</option>
+        <% ['Auxílio Doença','Aposentadoria Invalidez','Aposentadoria Idade Urbana','Aposentadoria Rural','Aposentadoria Especial','Aposentadoria Tempo Contribuição','Aposentadoria Pessoa Deficiência','Aposentadoria Híbrida','BPC/LOAS','Pensão por Morte','Salário Maternidade','Auxílio Acidentário','Revisão da Vida Toda','Revisão de Benefício','Planejamento Previdenciário','Averbação de Tempo'].forEach(t=>{%>
+          <option value="<%=t%>" <%=tipo===t?'selected':''%>><%=t%></option>
+        <%})%>
+      </select>
+      <select name="polo" class="filter-select" onchange="this.form.submit()">
+        <option value="">Todos os polos</option>
+        <option value="Autor" <%=polo==='Autor'?'selected':''%>>Autor</option>
+        <option value="Réu" <%=polo==='Réu'?'selected':''%>>Réu</option>
+      </select>
+      <select name="fase" class="filter-select" onchange="this.form.submit()">
+        <option value="">Todas as fases</option>
+        <option value="administrativa" <%=fase==='administrativa'?'selected':''%>>Administrativa</option>
+        <option value="judicial_1grau" <%=fase==='judicial_1grau'?'selected':''%>>Judicial 1º Grau</option>
+        <option value="recursal" <%=fase==='recursal'?'selected':''%>>Recursal</option>
+        <option value="execucao" <%=fase==='execucao'?'selected':''%>>Execução</option>
+        <option value="encerrado" <%=fase==='encerrado'?'selected':''%>>Encerrado</option>
+      </select>
+      <% if(busca||tipo||polo||fase){ %><a href="/" class="btn btn-ghost btn-sm"><i class="fas fa-times"></i> Limpar</a><% } %>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Buscar</button>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--ink-2);color:var(--gold)"><i class="fas fa-users"></i></div>Dossiês<% if(clientes.length){ %> <span class="badge badge-gray"><%=clientes.length%></span><% } %></div></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Cliente</th><th>Tese Estratégica</th><th>Fase</th><th>Processo</th><th>Cadastro</th><th style="text-align:right">Ações</th></tr></thead>
+      <tbody>
+        <% if(clientes.length>0){ clientes.forEach(c=>{
+          let bc='badge-gray';
+          if(c.tipo_acao){if(c.tipo_acao.includes('Auxílio'))bc='badge-gold';if(c.tipo_acao.includes('Aposentadoria'))bc='badge-blue';if(c.tipo_acao.includes('LOAS'))bc='badge-green';if(c.tipo_acao.includes('Pensão'))bc='badge-red';if(c.tipo_acao.includes('Revisão'))bc='badge-purple';}
+          const fase=c.fase_processual||'administrativa';
+          const faseLabel={administrativa:'Administrativa',judicial_1grau:'1º Grau',recursal:'Recursal',execucao:'Execução',encerrado:'Encerrado'}[fase]||fase;
+        %>
+        <tr>
+          <td data-label="Cliente" class="name-cell"><strong><a href="/clientes/<%=c._id%>" style="color:var(--ink-2)"><%=c.nome%></a></strong><span><%=c.profissao||'Profissão não informada'%><% if(c.polo_cliente==='Réu'){%> · <span class="text-red">Réu</span><%}%></span></td>
+          <td data-label="Tese"><span class="badge <%=bc%>"><%=c.tipo_acao||'—'%></span></td>
+          <td data-label="Fase"><span class="fase-pill fase-<%=fase%>"><%=faseLabel%></span></td>
+          <td data-label="Processo" class="text-sm text-muted" style="font-family:var(--font-mono)"><%=c.numero_processo?c.numero_processo.substring(0,20):'—'%></td>
+          <td data-label="Cadastro" class="text-sm text-muted"><%=moment(c.createdAt).format('DD/MM/YYYY')%></td>
+          <td data-label="Ações" style="text-align:right">
+            <div class="flex gap-2 justify-end">
+              <a href="/clientes/<%=c._id%>" class="btn btn-outline btn-sm btn-icon" title="Ver Dossiê"><i class="fas fa-eye"></i></a>
+              <a href="/clientes/<%=c._id%>/cumprimento" class="btn btn-outline btn-sm btn-icon" title="Liquidação"><i class="fas fa-calculator text-gold"></i></a>
+              <form action="/clientes/<%=c._id%>?_method=DELETE" method="POST" onsubmit="return confirm('Excluir o dossiê de <%=c.nome%>?')" style="display:inline">
+                <button type="submit" class="btn btn-outline btn-sm btn-icon"><i class="fas fa-trash-alt text-red"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <%})}else{%>
+        <tr><td colspan="6"><div class="empty-state"><i class="fas fa-folder-open"></i><p>
+          <%if(busca||tipo||polo||fase){%>Nenhum resultado. <a href="/" class="text-gold">Limpar busca</a><%}else{%>Nenhum dossiê. <a href="/novo" class="text-gold">Criar o primeiro</a><%}%>
+        </p></div></td></tr>
+        <%}%>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%- include('partials/footer') %>

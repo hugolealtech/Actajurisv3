@@ -1,0 +1,11 @@
+<%- include('partials/header') %>
+<div class="result-page">
+  <div class="result-icon success"><i class="fas fa-check"></i></div>
+  <h1 class="result-title">Documento Gerado!</h1>
+  <p class="result-msg">O arquivo <strong><%= arquivo %>.docx</strong> foi salvo no servidor e baixado automaticamente para o seu computador.</p>
+  <div class="flex gap-3 justify-center">
+    <a href="/clientes/<%= cliente._id %>" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Voltar ao Dossiê</a>
+    <a href="/" class="btn btn-outline"><i class="fas fa-th-large"></i> Dashboard</a>
+  </div>
+</div>
+<%- include('partials/footer') %>

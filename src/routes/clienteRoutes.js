@@ -1,0 +1,25 @@
+const express = require('express');
+const router  = express.Router();
+const ctrl    = require('../controllers/clienteController');
+const { asyncWrap } = require('../middlewares/errorHandler');
+
+router.get('/',                                      asyncWrap(ctrl.dashboard));
+router.get('/novo',                                  ctrl.novo);
+router.post('/clientes',                             asyncWrap(ctrl.criar));
+router.get('/clientes/:id',                          asyncWrap(ctrl.detalhe));
+router.get('/clientes/:id/editar',                   asyncWrap(ctrl.editarForm));
+router.put('/clientes/:id/editar',                   asyncWrap(ctrl.editar));
+router.put('/clientes/:id',                          asyncWrap(ctrl.atualizarTese));
+router.put('/clientes/:id/complementar',             asyncWrap(ctrl.complementar));
+router.put('/clientes/:id/arquivar',                 asyncWrap(ctrl.arquivar));
+router.delete('/clientes/:id',                       asyncWrap(ctrl.excluir));
+router.get('/clientes/:id/download',                 asyncWrap(ctrl.download));
+router.post('/clientes/:id/gerar-peticao',           asyncWrap(ctrl.gerarPeticao));
+router.post('/clientes/:id/gerar-rotina',            asyncWrap(ctrl.gerarRotina));
+router.post('/clientes/:id/gerar-lote',              asyncWrap(ctrl.gerarLote));
+router.post('/clientes/:id/anotacoes',               asyncWrap(ctrl.adicionarAnotacao));
+router.delete('/clientes/:id/anotacoes/:aid',        asyncWrap(ctrl.excluirAnotacao));
+router.post('/clientes/:id/prazos',                  asyncWrap(ctrl.adicionarPrazo));
+router.put('/clientes/:id/prazos/:pid/concluir',     asyncWrap(ctrl.concluirPrazo));
+router.delete('/clientes/:id/prazos/:pid',           asyncWrap(ctrl.excluirPrazo));
+module.exports = router;

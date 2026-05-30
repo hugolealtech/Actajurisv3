@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+<div class="page-header">
+  <div class="page-title">Abertura de Dossiê<small>Protocolo · Procuração + Contrato + Hipossuficiência</small></div>
+  <a href="/" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Voltar</a>
+</div>
+<form action="/clientes" method="POST" style="max-width:860px;margin:0 auto">
+  <div class="grid" style="gap:1.25rem">
+    <div class="card card--gold">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--gold-bg);color:var(--gold)"><i class="fas fa-id-card"></i></div>1. Identificação e Qualificação</div></div>
+      <div class="card-body">
+        <div class="form-group mb-4"><label class="form-label">Polo do Cliente</label>
+          <div class="radio-group"><div class="radio-pill"><input type="radio" name="polo_cliente" id="pa" value="Autor" checked><label for="pa"><i class="fas fa-user"></i> Polo Ativo (Autor)</label></div><div class="radio-pill"><input type="radio" name="polo_cliente" id="pr" value="Réu"><label for="pr"><i class="fas fa-gavel"></i> Polo Passivo (Réu)</label></div></div>
+        </div>
+        <div class="grid grid-2 gap-4">
+          <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nome Completo <span class="required">*</span></label><input type="text" name="nome" class="form-control" required placeholder="Conforme documento oficial"></div>
+          <div class="form-group"><label class="form-label">CPF ou CNPJ</label><input type="text" name="cpf" class="form-control" placeholder="000.000.000-00" oninput="mascaraCPFCNPJ(this)"></div>
+          <div class="form-group"><label class="form-label">Data de Nascimento</label><input type="date" name="data_nascimento" class="form-control"></div>
+          <div class="form-group"><label class="form-label">RG</label><div class="input-group"><input type="text" name="rg" class="form-control" placeholder="Número"><input type="text" name="rg_orgao" class="form-control" placeholder="Órgão/UF" style="max-width:110px"></div></div>
+          <div class="form-group"><label class="form-label">Nacionalidade</label><input type="text" name="nacionalidade" class="form-control" value="Brasileiro(a)"></div>
+          <div class="form-group"><label class="form-label">Estado Civil</label><select name="estado_civil" class="form-select"><option value="" disabled selected>Selecione...</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select></div>
+          <div class="form-group"><label class="form-label">Profissão</label><input type="text" name="profissao" class="form-control" placeholder="Ocupação principal"></div>
+        </div>
+        <div class="mt-4" style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem">
+          <label class="toggle-switch"><input type="checkbox" id="tRep"><div class="toggle-track"></div><span class="toggle-label">Representação Legal (menor, interditado, curatela)</span></label>
+          <div id="bRep" class="grid grid-3 gap-4 mt-3 d-none">
+            <div class="form-group"><label class="form-label">Tipo</label><select name="tipo_representacao" class="form-select"><option value="">Selecione...</option><option value="representado(a) por">Representado(a) por</option><option value="assistido(a) por">Assistido(a) por</option><option value="curatelado(a) por">Curatelado(a) por</option></select></div>
+            <div class="form-group"><label class="form-label">Nome do Representante</label><input type="text" name="nome_representante" class="form-control"></div>
+            <div class="form-group"><label class="form-label">CPF do Representante</label><input type="text" name="cpf_representante" class="form-control" oninput="mascaraCPFCNPJ(this)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-map-marker-alt"></i></div>2. Endereço e Contato</div></div>
+      <div class="card-body">
+        <div class="grid grid-4 gap-4">
+          <div class="form-group"><label class="form-label">CEP</label><input type="text" name="cep" class="form-control" placeholder="00000-000" maxlength="9" oninput="mascaraCEP(this)"><div id="cep_status" style="display:none"></div></div>
+          <div class="form-group" style="grid-column:span 3"><label class="form-label">Logradouro / Bairro / Cidade <span class="required">*</span></label><input type="text" name="endereco_rua" id="campo_rua" class="form-control" placeholder="Aguardando CEP..." required></div>
+          <div class="form-group" style="grid-column:span 2"><label class="form-label">Complemento (Nº, Bloco, Apto)</label><input type="text" name="endereco_complemento" class="form-control" placeholder="Ex: Nº 123, Bloco A"></div>
+          <div class="form-group" style="grid-column:span 2"><label class="form-label">Telefone / WhatsApp</label><input type="text" name="telefone" class="form-control" placeholder="(00) 00000-0000" maxlength="15" oninput="mascaraTelefone(this)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><div class="icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-gavel"></i></div>3. Objeto e Honorários</div></div>
+      <div class="card-body">
+        <div class="form-group mb-4"><label class="form-label">Tese / Benefício Pretendido <span class="required">*</span></label>
+          <select name="tipo_acao" class="form-select" required>
+            <option value="" disabled selected>Defina a natureza da causa...</option>
+            <optgroup label="Saúde e Incapacidade"><option value="Auxílio Doença">Auxílio por Incapacidade Temporária</option><option value="Aposentadoria Invalidez">Aposentadoria por Incapacidade Permanente</option><option value="Auxílio Acidentário">Auxílio-Acidente</option></optgroup>
+            <optgroup label="Aposentadorias"><option value="Aposentadoria Idade Urbana">Aposentadoria por Idade Urbana</option><option value="Aposentadoria Rural">Aposentadoria Rural (Segurado Especial)</option><option value="Aposentadoria Tempo Contribuição">Aposentadoria por Tempo de Contribuição</option><option value="Aposentadoria Especial">Aposentadoria Especial</option><option value="Aposentadoria Pessoa Deficiência">Aposentadoria da Pessoa com Deficiência</option><option value="Aposentadoria Híbrida">Aposentadoria Híbrida</option></optgroup>
+            <optgroup label="Assistencial e Família"><option value="BPC/LOAS">BPC / LOAS</option><option value="Pensão por Morte">Pensão por Morte</option><option value="Salário Maternidade">Salário-Maternidade</option><option value="Auxílio Reclusão">Auxílio-Reclusão</option></optgroup>
+            <optgroup label="Revisões e Planejamento"><option value="Revisão da Vida Toda">Revisão da Vida Toda</option><option value="Revisão de Benefício">Revisão de Benefício</option><option value="Planejamento Previdenciário">Planejamento Previdenciário</option><option value="Averbação de Tempo">Averbação de Tempo</option></optgroup>
+            <optgroup label="Teste"><option value="Petição Teste">Petição Teste</option></optgroup>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Cláusula de Honorários</label><textarea name="honorarios" class="form-control" rows="2">30% (trinta por cento) sobre o proveito econômico obtido ao final da demanda, acrescido do valor correspondente às 03 (três) primeiras parcelas do benefício concedido.</textarea></div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <a href="/" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-gold btn-lg"><i class="fas fa-check-circle"></i> Finalizar e Gerar Documentos</button>
+    </div>
+  </div>
+</form>
+<%- include('partials/footer') %>

@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    container_name: actajuris-app
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/actajuris
+    volumes:
+      - ./templates:/app/templates
+      - ./drive_simulado:/app/drive_simulado
+      - ./uploads:/app/uploads
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:7
+    container_name: actajuris-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+volumes:
+  mongo_data:

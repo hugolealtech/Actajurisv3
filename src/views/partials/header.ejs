@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ActaJuris v3 · Oliveira & Oliveira Leal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand">
+      <div class="brand-icon">🏛️</div>
+      <div><div class="brand-text">Oliveira & Oliveira Leal</div><span class="brand-sub">ActaJuris v3 · Sistema de Gestão</span></div>
+    </a>
+    <nav class="topbar-nav">
+      <a href="/" class="<%= typeof currentPage!=='undefined'&&currentPage==='dashboard'?'active':'' %>"><i class="fas fa-th-large"></i> Dashboard</a>
+      <a href="/agenda" class="<%= typeof currentPage!=='undefined'&&currentPage==='agenda'?'active':'' %>"><i class="fas fa-calendar-alt"></i> Agenda</a>
+      <a href="/api/stats" target="_blank"><i class="fas fa-code"></i> API</a>
+      <a href="/novo" class="btn-novo"><i class="fas fa-plus"></i> Novo Dossiê</a>
+    </nav>
+  </div>
+</header>
+<div class="container page">
