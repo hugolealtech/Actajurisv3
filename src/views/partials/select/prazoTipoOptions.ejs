@@ -1,0 +1,4 @@
+<% const selectedValue = typeof selected !== 'undefined' ? selected : ''; %>
+<% prazoTipos.forEach(option => { %>
+  <option value="<%= option.value %>" <%= selectedValue === option.value ? 'selected' : '' %>><%= option.label %></option>
+<% }) %>

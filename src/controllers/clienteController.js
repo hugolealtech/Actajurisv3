@@ -7,28 +7,157 @@ const {
     resolverPastaCliente, resolverSubpasta,
 } = require('../services/documentService');
 
+const TEMPLATES_DIR = path.join(__dirname, '../../templates');
+
+const TIPO_ACAO_OPTIONS = [
+    {
+        label: 'Auxílios',
+        options: [
+            { value: 'Auxílio Doença', label: 'Auxílio Doença' },
+            { value: 'Auxílio Acidentário', label: 'Auxílio Acidentário' },
+            { value: 'Auxílio Reclusão', label: 'Auxílio Reclusão' },
+            { value: 'Salário Maternidade', label: 'Salário Maternidade' },
+        ]
+    },
+    {
+        label: 'Aposentadorias',
+        options: [
+            { value: 'Aposentadoria Invalidez', label: 'Aposentadoria por Invalidez' },
+            { value: 'Aposentadoria Idade Urbana', label: 'Aposentadoria por Idade (Urbana)' },
+            { value: 'Aposentadoria Rural', label: 'Aposentadoria Rural' },
+            { value: 'Aposentadoria Especial', label: 'Aposentadoria Especial' },
+            { value: 'Aposentadoria Tempo Contribuição', label: 'Aposentadoria por Tempo de Contribuição' },
+            { value: 'Aposentadoria Pessoa Deficiência', label: 'Aposentadoria da Pessoa com Deficiência' },
+            { value: 'Aposentadoria Híbrida', label: 'Aposentadoria Híbrida' },
+        ]
+    },
+    {
+        label: 'Pensões',
+        options: [
+            { value: 'Pensão por Morte', label: 'Pensão por Morte' },
+        ]
+    },
+    {
+        label: 'Benefícios Assistenciais',
+        options: [
+            { value: 'BPC/LOAS', label: 'BPC / LOAS' },
+        ]
+    },
+    {
+        label: 'Revisões e Planejamento',
+        options: [
+            { value: 'Revisão da Vida Toda', label: 'Revisão da Vida Toda' },
+            { value: 'Revisão de Benefício', label: 'Revisão de Benefício' },
+            { value: 'Revisão do Teto', label: 'Revisão do Teto' },
+            { value: 'Planejamento Previdenciário', label: 'Planejamento Previdenciário' },
+            { value: 'Averbação de Tempo', label: 'Averbação de Tempo' },
+            { value: 'Averbação', label: 'Averbação' },
+            { value: 'Cálculo de Benefício', label: 'Cálculo de Benefício' },
+        ]
+    },
+    {
+        label: 'Recursos e Agravos',
+        options: [
+            { value: 'Recurso Ordinário', label: 'Recurso Ordinário' },
+            { value: 'Recurso Especial', label: 'Recurso Especial' },
+            { value: 'Recurso Extraordinário', label: 'Recurso Extraordinário' },
+            { value: 'Agravo Interno', label: 'Agravo Interno' },
+            { value: 'Agravo Interno TRF', label: 'Agravo Interno TRF' },
+            { value: 'Agravo em Recurso Especial', label: 'Agravo em Recurso Especial' },
+            { value: 'Agravo em Recurso Extraordinário', label: 'Agravo em Recurso Extraordinário' },
+        ]
+    },
+    {
+        label: 'Administrativo',
+        options: [
+            { value: 'Pedido de Reconsideração', label: 'Pedido de Reconsideração' },
+            { value: 'Requerimento Administrativo', label: 'Requerimento Administrativo' },
+            { value: 'Recurso Administrativo', label: 'Recurso Administrativo' },
+            { value: 'Notificação / Ofício de Restabelecimento', label: 'Notificação / Ofício de Restabelecimento' },
+            { value: 'Pedido de Cumprimento de Decisão Administrativa', label: 'Pedido de Cumprimento de Decisão Administrativa' },
+            { value: 'Restabelecimento de Benefício', label: 'Restabelecimento de Benefício' },
+        ]
+    },
+    {
+        label: 'Mandados',
+        options: [
+            { value: 'Mandado de Segurança', label: 'Mandado de Segurança' },
+        ]
+    },
+];
+
+const PRAZO_TIPOS = [
+    { value: 'recurso', label: 'Recurso' },
+    { value: 'protocolo', label: 'Protocolo' },
+    { value: 'audiencia', label: 'Audiência' },
+    { value: 'outro', label: 'Outro' },
+];
+
 const TEMPLATES_PETICAO = {
     'Auxílio Doença':                   'peticao_auxilio_doenca.docx',
     'Aposentadoria Invalidez':          'peticao_aposentadoria_invalidez.docx',
     'Aposentadoria Idade Urbana':       'peticao_aposentadoria_urbana.docx',
     'Aposentadoria Rural':              'peticao_aposentadoria_rural.docx',
     'Aposentadoria Especial':           'peticao_aposentadoria_especial.docx',
-    'Aposentadoria Tempo Contribuição': 'peticao_aposentadoria_tc.docx',
+    'Aposentadoria Tempo Contribuição': 'peticao_aposentadoria_tempo_contribuicao.docx',
+    'Aposentadoria Tempo de Contribuição': 'peticao_aposentadoria_tc.docx',
+    'Aposentadoria TC':                  'peticao_aposentadoria_tc.docx',
     'Aposentadoria Pessoa Deficiência': 'peticao_aposentadoria_deficiencia.docx',
     'Aposentadoria Híbrida':            'peticao_aposentadoria_hibrida.docx',
     'BPC/LOAS':                         'peticao_loas_deficiente.docx',
+    'LOAS Idoso':                       'peticao_loas_idoso.docx',
     'Pensão por Morte':                 'peticao_pensao_morte.docx',
     'Salário Maternidade':              'peticao_salario_maternidade.docx',
     'Auxílio Acidentário':              'peticao_auxilio_acidentario.docx',
+    'Auxílio Reclusão':                 'peticao_auxilio_reclusao.docx',
     'Revisão da Vida Toda':             'peticao_revisao_vida_toda.docx',
     'Revisão de Benefício':             'peticao_revisao_beneficio.docx',
-    'Petição Teste':                    'peticao_teste.docx',
+    'Planejamento Previdenciário':      'peticao_planejamento.docx',
+    'Averbação de Tempo':               'peticao_averbacao_tempo.docx',
+    'Averbação':                        'peticao_averbacao.docx',
+    'Cálculo de Benefício':             'peticao_calculo_beneficio.docx',
+    'Conversão de Tempo Rural':         'peticao_conversao_tempo_rural.docx',
+    'Embargos de Declaração':           'peticao_embargos_declaracao.docx',
+    'Isenção IR':                       'peticao_isencao_ir.docx',
+    'Pedido de Reconsideração':         'peticao_reconsideracao_administrativa.docx',
+    'Requerimento Administrativo':      'peticao_requerimento_administrativo.docx',
+    'Restabelecimento de Benefício':    'peticao_restabelecimento_beneficio.docx',
+    'Revisão do Teto':                  'peticao_revisao_teto.docx',
+    'Recurso Ordinário':                'peticao_recurso_ordinario.docx',
+    'Agravamento de Instrumento':       'peticao_agravamento_instrumento.docx',
+    'Agravo Interno':                   'peticao_agravo_interno.docx',
+    'Agravo Interno TRF':               'peticao_agravo_interno_trf1.docx',
+    'Recurso Especial':                 'peticao_recurso_especial.docx',
+    'Recurso Extraordinário':           'peticao_recurso_extraordinario.docx',
+    'Agravo em Recurso Especial':       'peticao_agravo_recurso_especial.docx',
+    'Agravo em Recurso Extraordinário': 'peticao_agravo_recurso_extraordinario.docx',
+    'Mandado de Segurança':             'peticao_mandado_seguranca.docx',
+    'Recurso Administrativo':           'peticao_recurso_administrativo.docx',
+    'Notificação / Ofício de Restabelecimento': 'peticao_notificacao_restabelecimento.docx',
+    'Pedido de Cumprimento de Decisão Administrativa': 'peticao_pedido_cumprimento_decisao_administrativa.docx',
 };
 
-// ── Dashboard ──────────────────────────────────────────────────
+function normalizeTemplateName(value) {
+    return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_]/g, '')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toLowerCase();
+}
+
+function resolverTemplatePeticao(tipoAcao) {
+    if (!tipoAcao || typeof tipoAcao !== 'string') return 'peticao_generica.docx';
+    if (TEMPLATES_PETICAO[tipoAcao]) return TEMPLATES_PETICAO[tipoAcao];
+    const candidate = `peticao_${normalizeTemplateName(tipoAcao)}.docx`;
+    return fs.existsSync(path.join(TEMPLATES_DIR, candidate)) ? candidate : 'peticao_generica.docx';
+}
+
 exports.dashboard = async (req, res) => {
-    const { busca, tipo, polo, fase } = req.query;
-    const filtro = { arquivado: { $ne: true } };
+    const { busca, tipo, polo, fase, arquivados } = req.query;
+    const filtro = arquivados ? { arquivado: true } : { arquivado: { $ne: true } };
     if (busca) filtro.$or = [
         { nome:            { $regex: busca, $options: 'i' } },
         { cpf:             { $regex: busca, $options: 'i' } },
@@ -40,9 +169,9 @@ exports.dashboard = async (req, res) => {
 
     const [clientes, total, porTipo, prazosUrgentes] = await Promise.all([
         Cliente.find(filtro).sort({ createdAt: -1 }).lean(),
-        Cliente.countDocuments({ arquivado: { $ne: true } }),
+        Cliente.countDocuments(filtro),
         Cliente.aggregate([
-            { $match: { arquivado: { $ne: true } } },
+            { $match: filtro },
             { $group: { _id: '$tipo_acao', count: { $sum: 1 } } },
             { $sort: { count: -1 } },
         ]),
@@ -60,8 +189,7 @@ exports.dashboard = async (req, res) => {
     ]);
 
     res.render('index', {
-        clientes, porTipo,
-        busca: busca||'', tipo: tipo||'', polo: polo||'', fase: fase||'',
+        clientes, porTipo,        tipoAcaoOptions: TIPO_ACAO_OPTIONS,        busca: busca||'', tipo: tipo||'', polo: polo||'', fase: fase||'', arquivados: !!arquivados,
         kpis: {
             totalClientes:  total,
             docsHoje:       docsHoje[0]?.total || 0,
@@ -71,7 +199,7 @@ exports.dashboard = async (req, res) => {
     });
 };
 
-exports.novo = (req, res) => res.render('novo');
+exports.novo = (req, res) => res.render('novo', { tipoAcaoOptions: TIPO_ACAO_OPTIONS });
 
 // ── Criar cliente — v3: estrutura de pastas organizada ─────────
 exports.criar = async (req, res) => {
@@ -118,7 +246,7 @@ exports.detalhe = async (req, res) => {
     if (!cliente) return res.render('error', { titulo: 'Não encontrado', mensagem: 'Dossiê inexistente.' });
     if (cliente.docs_gerados) cliente.docs_gerados.sort((a,b) => new Date(b.geradoEm)-new Date(a.geradoEm));
     if (cliente.prazos)       cliente.prazos.sort((a,b) => new Date(a.dataVencimento)-new Date(b.dataVencimento));
-    res.render('details', { cliente });
+    res.render('details', { cliente, tipoAcaoOptions: TIPO_ACAO_OPTIONS, prazoTipos: PRAZO_TIPOS });
 };
 
 exports.editarForm = async (req, res) => {
@@ -157,6 +285,7 @@ exports.complementar = async (req, res) => {
         id_gratuidade: d.id_gratuidade, id_decisao_recorrida: d.id_decisao_recorrida,
         jurisprudencia: d.jurisprudencia, jurisprudencia_2: d.jurisprudencia_2,
         jurisprudencia_3: d.jurisprudencia_3, jurisprudencia_4: d.jurisprudencia_4,
+        tese_judicial: d.tese_judicial, tese_administrativa: d.tese_administrativa,
     });
     res.redirect(`/clientes/${req.params.id}?status=sucesso`);
 };
@@ -180,27 +309,38 @@ async function gerarEServir(req, res, { templateArquivo, nomeArquivo, tipoDoc, t
     const pastaCliente = resolverPastaCliente(cliente.toObject());
     const subpasta     = resolverSubpasta(pastaCliente, tipoDoc);
     const dados        = montarDados(cliente.toObject(), templateArquivo);
-    const { buf }      = await criarDocumento(templateArquivo, dados, subpasta, nomeArquivo);
+    let buf;
+    try {
+        ({ buf } = await criarDocumento(templateArquivo, dados, subpasta, nomeArquivo));
+    } catch (e) {
+        const err = new Error(`Falha ao gerar documento "${nomeArquivo}": ${e.message}`);
+        err.status = e.status || 400;
+        throw err;
+    }
 
     cliente.docs_gerados.push({ tipo: tipoTimeline, arquivo: nomeArquivo, template: templateArquivo });
     await cliente.save();
 
-    // v3: download direto no navegador do usuário
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(nomeArquivo)}.docx"`);
+    // v3: download direto no navegador, normatizado para RFC 5987 e com tamanho estrito
+    res.setHeader('Content-Disposition', `attachment; filename="documento.docx"; filename*=UTF-8''${encodeURIComponent(nomeArquivo)}.docx`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Length', buf.length);
     res.send(buf);
 }
 
 exports.gerarPeticao = async (req, res) => {
     const cliente         = await Cliente.findById(req.params.id).lean();
     if (!cliente) throw Object.assign(new Error('Cliente não encontrado.'), { status: 404 });
-    const templateArquivo = TEMPLATES_PETICAO[cliente.tipo_acao] || 'peticao_generica.docx';
+    const templateArquivo = resolverTemplatePeticao(cliente.tipo_acao);
     const nomeArquivo     = `PETICAO INICIAL - ${(cliente.tipo_acao||'GERAL').toUpperCase()}`;
     await gerarEServir(req, res, { templateArquivo, nomeArquivo, tipoDoc: 'peticao', tipoTimeline: 'peticao' });
 };
 
 exports.gerarRotina = async (req, res) => {
     const { modelo_rotina } = req.body;
+    if (!modelo_rotina || typeof modelo_rotina !== 'string') {
+        throw Object.assign(new Error('Selecione um modelo de rotina válido.'), { status: 400 });
+    }
     const nomeArquivo = `ROTINA - ${modelo_rotina.replace('.docx','').replace('rotina_','').toUpperCase().replace(/_/g,' ')}`;
     await gerarEServir(req, res, { templateArquivo: modelo_rotina, nomeArquivo, tipoDoc: 'peticao', tipoTimeline: 'rotina' });
 };
@@ -209,7 +349,10 @@ exports.gerarLote = async (req, res) => {
     const { modelos } = req.body;
     const cliente     = await Cliente.findById(req.params.id);
     if (!cliente) throw Object.assign(new Error('Cliente não encontrado.'), { status: 404 });
-    const lista        = Array.isArray(modelos) ? modelos : [modelos];
+    const lista        = Array.isArray(modelos) ? modelos : (modelos ? [modelos] : []);
+    if (lista.length === 0) {
+        throw Object.assign(new Error('Selecione ao menos um modelo para gerar em lote.'), { status: 400 });
+    }
     const pastaCliente = resolverPastaCliente(cliente.toObject());
     const subpasta     = resolverSubpasta(pastaCliente, 'peticao');
     const gerados      = [];
@@ -224,8 +367,10 @@ exports.gerarLote = async (req, res) => {
     }
     await cliente.save();
     if (buffers.length === 1) {
-        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(buffers[0].nome)}.docx"`);
+        // v3: download direto no navegador, normatizado para RFC 5987 e com tamanho estrito
+        res.setHeader('Content-Disposition', `attachment; filename="documento.docx"; filename*=UTF-8''${encodeURIComponent(buffers[0].nome)}.docx`);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Length', buffers[0].buf.length);
         return res.send(buffers[0].buf);
     }
     res.render('success_lote', { cliente: cliente.toObject(), gerados });
@@ -244,7 +389,9 @@ exports.download = async (req, res) => {
     if (!fs.existsSync(filePath)) {
         return res.status(404).send(`Arquivo "${arquivo}.docx" não encontrado no servidor.`);
     }
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(arquivo)}.docx"`);
+    
+    // Normatizado para RFC 5987: preserva acentuação e espaços no nome do arquivo
+    res.setHeader('Content-Disposition', `attachment; filename="documento.docx"; filename*=UTF-8''${encodeURIComponent(arquivo)}.docx`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.sendFile(filePath);
 };

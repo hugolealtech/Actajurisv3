@@ -50,12 +50,10 @@
         <form action="/clientes/<%=cliente._id%>?_method=PUT" method="POST">
           <div class="form-group mb-3"><label class="form-label">Objeto / Benefício</label>
             <select name="tipo_acao" class="form-select">
-              <option value="<%=cliente.tipo_acao%>" selected>📍 <%=cliente.tipo_acao||'Não definido'%></option>
-              <optgroup label="Saúde e Incapacidade"><option value="Auxílio Doença">Auxílio por Incapacidade Temporária</option><option value="Auxílio Acidentário">Auxílio-Acidente</option><option value="Aposentadoria Invalidez">Aposentadoria por Incapacidade Permanente</option></optgroup>
-              <optgroup label="Aposentadorias"><option value="Aposentadoria Idade Urbana">Aposentadoria por Idade Urbana</option><option value="Aposentadoria Rural">Aposentadoria Rural</option><option value="Aposentadoria Tempo Contribuição">Aposentadoria por Tempo de Contribuição</option><option value="Aposentadoria Especial">Aposentadoria Especial</option><option value="Aposentadoria Pessoa Deficiência">Aposentadoria da Pessoa com Deficiência</option><option value="Aposentadoria Híbrida">Aposentadoria Híbrida</option></optgroup>
-              <optgroup label="Assistencial e Família"><option value="BPC/LOAS">BPC / LOAS</option><option value="Pensão por Morte">Pensão por Morte</option><option value="Salário Maternidade">Salário-Maternidade</option><option value="Auxílio Reclusão">Auxílio-Reclusão</option></optgroup>
-              <optgroup label="Revisões"><option value="Revisão da Vida Toda">Revisão da Vida Toda</option><option value="Revisão de Benefício">Revisão de Benefício</option><option value="Planejamento Previdenciário">Planejamento Previdenciário</option><option value="Averbação de Tempo">Averbação de Tempo</option></optgroup>
-              <optgroup label="Teste"><option value="Petição Teste">Petição Teste</option></optgroup>
+              <% if (!cliente.tipo_acao) { %>
+                <option value="" disabled selected>Não definido</option>
+              <% } %>
+              <%- include('partials/select/tipoAcaoOptions', { selected: cliente.tipo_acao }) %>
             </select>
           </div>
           <button type="submit" class="btn btn-outline btn-sm btn-full mb-3"><i class="fas fa-sync-alt"></i> Atualizar Tese</button>
@@ -87,7 +85,12 @@
           <div class="grid grid-2 gap-2 mb-2">
             <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição do Prazo</label><input type="text" name="descricao" class="form-control" placeholder="Ex: Contrarrazões ao Recurso Inominado" required></div>
             <div class="form-group"><label class="form-label">Vencimento</label><input type="date" name="dataVencimento" class="form-control" required></div>
-            <div class="form-group"><label class="form-label">Tipo</label><select name="tipo" class="form-select"><option value="recurso">Recurso</option><option value="protocolo">Protocolo</option><option value="audiencia">Audiência</option><option value="outro">Outro</option></select></div>
+            <div class="form-group"><label class="form-label">Tipo</label>
+              <select name="tipo" class="form-select">
+                <option value="" disabled selected>Selecione o tipo de prazo</option>
+                <%- include('partials/select/prazoTipoOptions', { selected: '' }) %>
+              </select>
+            </div>
           </div>
           <button type="submit" class="btn btn-danger btn-sm btn-full"><i class="fas fa-plus"></i> Adicionar Prazo</button>
         </form>
@@ -151,15 +154,27 @@
           </div>
           <div class="section-divider"><div class="dot" style="background:var(--blue)"></div>3. Processo e Endereçamento</div>
           <div class="form-group mb-4"><label class="form-label">Número do Processo</label><input type="text" name="numero_processo" class="form-control mono" value="<%=cliente.numero_processo||''%>" placeholder="0000000-00.0000.0.00.0000" oninput="mascaraNumProc(this)"></div>
-          <div class="grid grid-3 gap-4 mb-4">
-            <div class="form-group"><label class="form-label">Vara (Nº)</label><input type="text" name="vara" id="vara" class="form-control" value="<%=cliente.vara||''%>" placeholder="Ex: 13"></div>
-            <div class="form-group"><label class="form-label">Jurisdição</label><select name="jurisdicao" id="jurisdicao" class="form-select"><option value="<%=cliente.jurisdicao||''%>" selected><%=cliente.jurisdicao||'Selecione...'%></option><%['VARA FEDERAL','VARA FEDERAL DOS JUIZADOS ESPECIAIS','VARA CÍVEL','VARA DOS JUIZADOS ESPECIAIS CÍVEIS','VARA CRIMINAL','VARA DE FAMÍLIA E SUCESSÕES'].forEach(j=>{%><option value="<%=j%>"><%=j%></option><%})%></select></div>
-            <div class="form-group"><label class="form-label">Circunscrição / Local</label><input type="text" name="circunscricao_judiciaria" id="circunscricao" class="form-control" value="<%=cliente.circunscricao_judiciaria||''%>"></div>
+          <!-- Preview e campos condicionados por fase -->
+          <div id="preview-section" style="display:none" class="mb-4">
+            <div class="preview-box">
+              <div class="preview-caption"><i class="fas fa-eye"></i> Pré-visualização do Endereçamento</div>
+              <div id="preview-judicial" class="preview-heading" style="display:none">AO JUÍZO DA <span id="pv" class="text-gold"><%=cliente.vara||'___'%></span> <span id="pj" class="text-gold"><%=cliente.jurisdicao||'_______'%></span> <span id="pc" class="text-gold"><%=cliente.circunscricao_judiciaria||'_______'%></span></div>
+              <div id="preview-admin" class="preview-heading" style="display:none">AO INSTITUTO NACIONAL DO SEGURO SOCIAL - INSS<br/><span class="text-sm" style="font-weight:normal">Tese: <span id="pa" class="text-gold"><%=cliente.tese_administrativa||'_______________'%></span></span></div>
+              <div id="preview-hint" class="preview-hint"></div>
+            </div>
           </div>
-          <div class="preview-box mb-4">
-            <div class="preview-caption"><i class="fas fa-eye"></i> Pré-visualização do Endereçamento</div>
-            <div class="preview-heading">AO JUÍZO DA <span id="pv" class="text-gold"><%=cliente.vara||'___'%></span> <span id="pj" class="text-gold"><%=cliente.jurisdicao||'_______'%></span> <span id="pc" class="text-gold"><%=cliente.circunscricao_judiciaria||'_______'%></span></div>
-            <div class="preview-hint">Cole no Word: <code>AO JUÍZO DA {vara} {jurisdicao} {circunscricao_judiciaria}</code></div>
+          <!-- Campos específicos para fase judicial -->
+          <div id="campos-judicial" style="display:none" class="mb-4">
+            <div class="grid grid-3 gap-4 mb-4">
+              <div class="form-group"><label class="form-label">Vara (Nº)</label><input type="text" name="vara" id="vara" class="form-control" value="<%=cliente.vara||''%>" placeholder="Ex: 13"></div>
+              <div class="form-group"><label class="form-label">Jurisdição</label><select name="jurisdicao" id="jurisdicao" class="form-select"><option value="<%=cliente.jurisdicao||''%>" selected><%=cliente.jurisdicao||'Selecione...'%></option><%['VARA FEDERAL','VARA FEDERAL DOS JUIZADOS ESPECIAIS','VARA CÍVEL','VARA DOS JUIZADOS ESPECIAIS CÍVEIS','VARA CRIMINAL','VARA DE FAMÍLIA E SUCESSÕES'].forEach(j=>{%><option value="<%=j%>"><%=j%></option><%})%></select></div>
+              <div class="form-group"><label class="form-label">Circunscrição / Local</label><input type="text" name="circunscricao_judiciaria" id="circunscricao" class="form-control" value="<%=cliente.circunscricao_judiciaria||''%>"></div>
+            </div>
+            <div class="form-group mb-4"><label class="form-label">Tese Processual (Judicial)</label><textarea name="tese_judicial" id="tese_judicial" class="form-control" rows="2" placeholder="Ex: Concessão de aposentadoria por tempo de contribuição..."><%=cliente.tese_judicial||''%></textarea></div>
+          </div>
+          <!-- Campos específicos para fase administrativa -->
+          <div id="campos-admin" style="display:none" class="mb-4">
+            <div class="form-group"><label class="form-label">Tese / Fundamento (INSS)</label><textarea name="tese_administrativa" id="tese_administrativa" class="form-control" rows="2" placeholder="Ex: Reconhecimento de tempo de contribuição rural..."><%=cliente.tese_administrativa||''%></textarea></div>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem">
             <div class="flex items-center justify-between mb-3">
@@ -308,6 +323,8 @@
             <div class="tag-item green"><span class="tag-key">{nit}</span><span class="tag-desc">NIT / PIS</span></div>
           </div>
           <div><p class="text-xs text-bold mb-2" style="color:var(--blue);text-transform:uppercase;letter-spacing:.8px"><i class="fas fa-gavel"></i> Teses e Prazos</p>
+            <div class="tag-item blue"><span class="tag-key">{tese_judicial}</span><span class="tag-desc">Tese (Judicial)</span></div>
+            <div class="tag-item green"><span class="tag-key">{tese_administrativa}</span><span class="tag-desc">Tese (Admin)</span></div>
             <div class="tag-item red"><span class="tag-key">{negativa}</span><span class="tag-desc">Motivo Negativa</span></div>
             <div class="tag-item red"><span class="tag-key">{data_negativa}</span><span class="tag-desc">Data Negativa</span></div>
             <div class="tag-item"><span class="tag-key">{doenca}</span><span class="tag-desc">Fatos/Patologia</span></div>

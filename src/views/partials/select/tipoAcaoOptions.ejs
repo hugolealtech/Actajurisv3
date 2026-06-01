@@ -1,0 +1,8 @@
+<% const selectedValue = typeof selected !== 'undefined' ? selected : ''; %>
+<% tipoAcaoOptions.forEach(group => { %>
+  <optgroup label="<%= group.label %>">
+    <% group.options.forEach(option => { %>
+      <option value="<%= option.value %>" <%= selectedValue === option.value ? 'selected' : '' %>><%= option.label %></option>
+    <% }) %>
+  </optgroup>
+<% }) %>

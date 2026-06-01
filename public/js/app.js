@@ -29,6 +29,51 @@ document.addEventListener('DOMContentLoaded',()=>{
     Swal.fire({title:'Salvo!',text:'Dados gravados com sucesso.',icon:'success',toast:true,position:'top-end',showConfirmButton:false,timer:3000,timerProgressBar:true});
     window.history.replaceState({},'',window.location.pathname+window.location.hash);
   }
+  
+  // Handle fase_processual changes for conditional display
+  const faseSelect = document.querySelector('[name="fase_processual"]');
+  const updateFaseDisplay = () => {
+    const fase = faseSelect?.value || 'administrativa';
+    const isjudicial = ['judicial_1grau', 'recursal', 'execucao'].includes(fase);
+    const isadmin = fase === 'administrativa';
+    
+    // Show/hide sections
+    const camposJudicial = document.getElementById('campos-judicial');
+    const camposAdmin = document.getElementById('campos-admin');
+    const previewJudicial = document.getElementById('preview-judicial');
+    const previewAdmin = document.getElementById('preview-admin');
+    const previewSection = document.getElementById('preview-section');
+    const previewHint = document.getElementById('preview-hint');
+    
+    if (camposJudicial) camposJudicial.style.display = isjudicial ? 'block' : 'none';
+    if (camposAdmin) camposAdmin.style.display = isadmin ? 'block' : 'none';
+    if (previewSection) previewSection.style.display = (isjudicial || isadmin) ? 'block' : 'none';
+    if (previewJudicial) previewJudicial.style.display = isjudicial ? 'block' : 'none';
+    if (previewAdmin) previewAdmin.style.display = isadmin ? 'block' : 'none';
+    
+    if (previewHint) {
+      if (isjudicial) {
+        previewHint.innerHTML = 'Cole no Word: <code>AO JUÍZO DA {vara} {jurisdicao} {circunscricao_judiciaria}</code>';
+      } else if (isadmin) {
+        previewHint.innerHTML = 'Cole no Word: <code>AO INSTITUTO NACIONAL DO SEGURO SOCIAL - INSS</code><br/>Tese: <code>{tese_administrativa}</code>';
+      }
+    }
+  };
+  
+  if (faseSelect) {
+    updateFaseDisplay();
+    faseSelect.addEventListener('change', updateFaseDisplay);
+  }
+  
+  // Update tese_administrativa preview
+  const teseAdminInput = document.getElementById('tese_administrativa');
+  const previewAdmin = document.getElementById('pa');
+  if (teseAdminInput && previewAdmin) {
+    teseAdminInput.addEventListener('input', (e) => {
+      previewAdmin.textContent = e.target.value || '_______________';
+    });
+  }
+  
   const vEl=document.getElementById('vara'),jEl=document.getElementById('jurisdicao'),cEl=document.getElementById('circunscricao');
   const pv=document.getElementById('pv'),pj=document.getElementById('pj'),pc=document.getElementById('pc');
   if(vEl&&pv){vEl.addEventListener('input',e=>{pv.textContent=e.target.value||'___'});vEl.addEventListener('blur',e=>{if(/^\d+$/.test(e.target.value.trim())){e.target.value=e.target.value.trim()+'ª';pv.textContent=e.target.value}})}
@@ -43,4 +88,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     const cores=['#c9a84c','#2563eb','#16a34a','#dc2626','#7c3aed','#ea580c','#0891b2','#db2777'];
     new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:cores,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{family:'DM Sans',size:11},boxWidth:12,padding:10}}}}});
   }
+  // Confirm before archiving/unarchiving
+  document.querySelectorAll('form[action*="/arquivar"]').forEach(f=>{
+    f.addEventListener('submit',e=>{
+      const title = f.querySelector('button')?.getAttribute('title') || 'Arquivar/Desarquivar';
+      if(!confirm(`${title}?`)) e.preventDefault();
+    });
+  });
 });

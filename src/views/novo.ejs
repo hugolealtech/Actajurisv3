@@ -47,11 +47,7 @@
         <div class="form-group mb-4"><label class="form-label">Tese / Benefício Pretendido <span class="required">*</span></label>
           <select name="tipo_acao" class="form-select" required>
             <option value="" disabled selected>Defina a natureza da causa...</option>
-            <optgroup label="Saúde e Incapacidade"><option value="Auxílio Doença">Auxílio por Incapacidade Temporária</option><option value="Aposentadoria Invalidez">Aposentadoria por Incapacidade Permanente</option><option value="Auxílio Acidentário">Auxílio-Acidente</option></optgroup>
-            <optgroup label="Aposentadorias"><option value="Aposentadoria Idade Urbana">Aposentadoria por Idade Urbana</option><option value="Aposentadoria Rural">Aposentadoria Rural (Segurado Especial)</option><option value="Aposentadoria Tempo Contribuição">Aposentadoria por Tempo de Contribuição</option><option value="Aposentadoria Especial">Aposentadoria Especial</option><option value="Aposentadoria Pessoa Deficiência">Aposentadoria da Pessoa com Deficiência</option><option value="Aposentadoria Híbrida">Aposentadoria Híbrida</option></optgroup>
-            <optgroup label="Assistencial e Família"><option value="BPC/LOAS">BPC / LOAS</option><option value="Pensão por Morte">Pensão por Morte</option><option value="Salário Maternidade">Salário-Maternidade</option><option value="Auxílio Reclusão">Auxílio-Reclusão</option></optgroup>
-            <optgroup label="Revisões e Planejamento"><option value="Revisão da Vida Toda">Revisão da Vida Toda</option><option value="Revisão de Benefício">Revisão de Benefício</option><option value="Planejamento Previdenciário">Planejamento Previdenciário</option><option value="Averbação de Tempo">Averbação de Tempo</option></optgroup>
-            <optgroup label="Teste"><option value="Petição Teste">Petição Teste</option></optgroup>
+            <%- include('partials/select/tipoAcaoOptions') %>
           </select>
         </div>
         <div class="form-group"><label class="form-label">Cláusula de Honorários</label><textarea name="honorarios" class="form-control" rows="2">30% (trinta por cento) sobre o proveito econômico obtido ao final da demanda, acrescido do valor correspondente às 03 (três) primeiras parcelas do benefício concedido.</textarea></div>

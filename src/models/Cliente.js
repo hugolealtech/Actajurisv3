@@ -45,6 +45,8 @@ const clienteSchema = new mongoose.Schema({
     negativa:      { type: String },
     data_negativa: { type: Date },
     detalhes_caso: { type: String },
+    tese_judicial:       { type: String },
+    tese_administrativa: { type: String },
     numero_processo:          { type: String },
     vara:                     { type: String },
     jurisdicao:               { type: String },

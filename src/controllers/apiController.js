@@ -57,3 +57,4 @@ exports.calcularPrazo = (req, res) => {
     const { calcularDiasUteis } = require('../services/documentService');
     res.json({ ok: true, dataBase: data, diasUteis: parseInt(dias), vencimento: calcularDiasUteis(data, parseInt(dias)) });
 };
+ 
