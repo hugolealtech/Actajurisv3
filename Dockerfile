@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20.20.2-bookworm
 
 RUN apt-get update && apt-get install -y \
     libreoffice default-jre fonts-liberation fonts-dejavu tzdata \
