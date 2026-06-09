@@ -425,3 +425,108 @@ exports.excluirPrazo = async (req, res) => {
     await Cliente.findByIdAndUpdate(req.params.id, { $pull: { prazos: { _id: req.params.pid } } });
     res.redirect(`/clientes/${req.params.id}#prazos`);
 };
+
+// ── Painel de Arquivos da Pasta do Cliente ──────────────────────
+const multer  = require('multer');
+const SUBPASTAS = {
+    procuracao: { label: 'Procuração',  num: '01' },
+    contrato:   { label: 'Contrato',    num: '01' },
+    peticao:    { label: 'Petições',    num: '02' },
+    prova:      { label: 'Provas',      num: '03' },
+};
+
+const storageUpload = multer.diskStorage({
+    destination: (req, file, cb) => {
+        // req.body ainda não está populado aqui — lê a categoria do header customizado
+        // que o frontend vai enviar, ou usa memória e move depois
+        const cliente  = req._clienteObj;
+        const pasta    = resolverPastaCliente(cliente);
+        // Categoria vem via campo de formulário — mas multer não garante ordem,
+        // então lemos do req._categoriaUpload injetado antes pelo middleware
+        const subpasta = resolverSubpasta(pasta, req._categoriaUpload || 'peticao');
+        cb(null, subpasta);
+    },
+    filename: (req, file, cb) => {
+        const nome = file.originalname.replace(/[/\\?%*:|"<>]/g, '-');
+        cb(null, nome);
+    },
+});
+
+const upload = multer({
+    storage: storageUpload,
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+});
+
+// Middleware para injetar o objeto cliente no req antes do multer processar
+exports._injectCliente = async (req, res, next) => {
+    try {
+        const cliente = await Cliente.findById(req.params.id).lean();
+        if (!cliente) return res.status(404).json({ ok: false, erro: 'Cliente não encontrado.' });
+        req._clienteObj = cliente;
+        // Categoria vem como query param para garantir disponibilidade antes do multer
+        req._categoriaUpload = req.query.categoria || 'peticao';
+        next();
+    } catch (e) { next(e); }
+};
+
+exports.listarPasta = async (req, res) => {
+    const cliente = await Cliente.findById(req.params.id).lean();
+    if (!cliente) return res.status(404).json({ ok: false, erro: 'Cliente não encontrado.' });
+
+    const pastaBase = resolverPastaCliente(cliente);
+    const resultado = {};
+
+    for (const [tipo, meta] of Object.entries(SUBPASTAS)) {
+        const dir = resolverSubpasta(pastaBase, tipo);
+        let arquivos = [];
+        if (fs.existsSync(dir)) {
+            arquivos = fs.readdirSync(dir)
+                .filter(f => !f.startsWith('.'))
+                .map(f => {
+                    const stat = fs.statSync(path.join(dir, f));
+                    return { nome: f, tamanho: stat.size, modificado: stat.mtime };
+                })
+                .sort((a, b) => b.modificado - a.modificado);
+        }
+        resultado[tipo] = { ...meta, arquivos };
+    }
+
+    res.json({ ok: true, pasta: resultado });
+};
+
+exports.uploadArquivo = [
+    exports._injectCliente,
+    upload.single('arquivo'),
+    async (req, res) => {
+        if (!req.file) return res.status(400).json({ ok: false, erro: 'Nenhum arquivo recebido.' });
+        res.json({ ok: true, nome: req.file.filename, tamanho: req.file.size });
+    },
+];
+
+exports.downloadArquivoPasta = async (req, res) => {
+    const cliente = await Cliente.findById(req.params.id).lean();
+    if (!cliente) return res.status(404).json({ ok: false, erro: 'Não encontrado.' });
+    const { categoria, arquivo } = req.params;
+    if (!SUBPASTAS[categoria]) return res.status(400).json({ ok: false, erro: 'Categoria inválida.' });
+    const pastaBase = resolverPastaCliente(cliente);
+    const subpasta  = resolverSubpasta(pastaBase, categoria);
+    const filePath  = path.join(subpasta, arquivo);
+    // Segurança: impede path traversal
+    if (!filePath.startsWith(subpasta)) return res.status(403).end();
+    if (!fs.existsSync(filePath)) return res.status(404).json({ ok: false, erro: 'Arquivo não encontrado.' });
+    res.download(filePath, arquivo);
+};
+
+exports.excluirArquivoPasta = async (req, res) => {
+    const cliente = await Cliente.findById(req.params.id).lean();
+    if (!cliente) return res.status(404).json({ ok: false, erro: 'Não encontrado.' });
+    const { categoria, arquivo } = req.params;
+    if (!SUBPASTAS[categoria]) return res.status(400).json({ ok: false, erro: 'Categoria inválida.' });
+    const pastaBase = resolverPastaCliente(cliente);
+    const subpasta  = resolverSubpasta(pastaBase, categoria);
+    const filePath  = path.join(subpasta, arquivo);
+    if (!filePath.startsWith(subpasta)) return res.status(403).end();
+    if (!fs.existsSync(filePath)) return res.status(404).json({ ok: false, erro: 'Arquivo não encontrado.' });
+    fs.unlinkSync(filePath);
+    res.json({ ok: true });
+};

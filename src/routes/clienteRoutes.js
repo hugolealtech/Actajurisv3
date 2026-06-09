@@ -23,3 +23,7 @@ router.post('/clientes/:id/prazos',                  asyncWrap(ctrl.adicionarPra
 router.put('/clientes/:id/prazos/:pid/concluir',     asyncWrap(ctrl.concluirPrazo));
 router.delete('/clientes/:id/prazos/:pid',           asyncWrap(ctrl.excluirPrazo));
 module.exports = router;
+router.get('/clientes/:id/pasta',                              asyncWrap(ctrl.listarPasta));
+router.post('/clientes/:id/pasta/upload',                      ctrl.uploadArquivo);
+router.get('/clientes/:id/pasta/:categoria/:arquivo',          asyncWrap(ctrl.downloadArquivoPasta));
+router.delete('/clientes/:id/pasta/:categoria/:arquivo',       asyncWrap(ctrl.excluirArquivoPasta));
